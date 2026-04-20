@@ -1,6 +1,28 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createGroq } from "@ai-sdk/groq";
+import { generateText } from "ai";
 
 const DEFAULT_KEY = process.env.GEMINI_API_KEY || "";
+const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
+const GROQ_VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const GROQ_TEXT_MODEL = "llama-3.3-70b-versatile";
+
+function getGroqProvider() {
+  if (!GROQ_API_KEY) return null;
+  return createGroq({ apiKey: GROQ_API_KEY });
+}
+
+function isServiceBusy(error: unknown): boolean {
+  if (error instanceof GeminiError && error.code === "SERVICE_BUSY")
+    return true;
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("503") ||
+    msg.includes("high demand") ||
+    msg.includes("Service Unavailable") ||
+    msg.includes("overloaded")
+  );
+}
 
 function getModel(apiKey?: string) {
   const key = apiKey || DEFAULT_KEY;
@@ -217,6 +239,112 @@ function extractText(
   return response.text();
 }
 
+// ── Groq fallback helpers ──────────────────────────────────────────────
+
+async function tryGroqImageAnalysis(
+  base64Image: string,
+  mimeType: string,
+  climateContext?: string
+) {
+  const groq = getGroqProvider();
+  if (!groq) return null;
+
+  try {
+    console.log("[Groq Fallback] Attempting image analysis...");
+    const prompt = withClimateContext(IMAGE_ANALYSIS_PROMPT, climateContext);
+
+    const result = await generateText({
+      model: groq(GROQ_VISION_MODEL),
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image",
+              image: `data:${mimeType};base64,${base64Image}`,
+            },
+          ],
+        },
+      ],
+    });
+
+    console.log("[Groq Fallback] Image analysis succeeded");
+    return parseGeminiResponse(result.text);
+  } catch (err) {
+    console.error(
+      "[Groq Fallback] Image analysis failed:",
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
+async function tryGroqTextAnalysis(itemsText: string, climateContext?: string) {
+  const groq = getGroqProvider();
+  if (!groq) return null;
+
+  try {
+    console.log("[Groq Fallback] Attempting text analysis...");
+    const prompt = withClimateContext(TEXT_ANALYSIS_PROMPT, climateContext);
+
+    const result = await generateText({
+      model: groq(GROQ_TEXT_MODEL),
+      prompt: `${prompt}\n\nHere are the items:\n${itemsText}`,
+    });
+
+    console.log("[Groq Fallback] Text analysis succeeded");
+    return parseGeminiResponse(result.text);
+  } catch (err) {
+    console.error(
+      "[Groq Fallback] Text analysis failed:",
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
+async function tryGroqCameraAnalysis(
+  base64Image: string,
+  mimeType: string,
+  climateContext?: string
+) {
+  const groq = getGroqProvider();
+  if (!groq) return null;
+
+  try {
+    console.log("[Groq Fallback] Attempting camera analysis...");
+    const prompt = withClimateContext(LIVE_CAMERA_PROMPT, climateContext);
+
+    const result = await generateText({
+      model: groq(GROQ_VISION_MODEL),
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: prompt },
+            {
+              type: "image",
+              image: `data:${mimeType};base64,${base64Image}`,
+            },
+          ],
+        },
+      ],
+    });
+
+    console.log("[Groq Fallback] Camera analysis succeeded");
+    return parseGeminiResponse(result.text);
+  } catch (err) {
+    console.error(
+      "[Groq Fallback] Camera analysis failed:",
+      err instanceof Error ? err.message : err
+    );
+    return null;
+  }
+}
+
+// ── Exported analysis functions ────────────────────────────────────────
+
 export async function analyzeImage(
   base64Image: string,
   mimeType: string,
@@ -239,6 +367,14 @@ export async function analyzeImage(
     const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
+    if (isServiceBusy(error)) {
+      const fallback = await tryGroqImageAnalysis(
+        base64Image,
+        mimeType,
+        climateContext
+      );
+      if (fallback) return fallback;
+    }
     handleGeminiError(error);
   }
 }
@@ -259,6 +395,10 @@ export async function analyzeText(
     const text = extractText(result, "items");
     return parseGeminiResponse(text);
   } catch (error) {
+    if (isServiceBusy(error)) {
+      const fallback = await tryGroqTextAnalysis(itemsText, climateContext);
+      if (fallback) return fallback;
+    }
     handleGeminiError(error);
   }
 }
@@ -285,6 +425,14 @@ export async function analyzeCameraFrame(
     const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
+    if (isServiceBusy(error)) {
+      const fallback = await tryGroqCameraAnalysis(
+        base64Image,
+        mimeType,
+        climateContext
+      );
+      if (fallback) return fallback;
+    }
     handleGeminiError(error);
   }
 }

@@ -28,7 +28,7 @@
 |---|---|---|
 | Framework | Next.js (App Router, Turbopack) | 16.1.6 |
 | Frontend | React, Tailwind CSS v4, shadcn/ui, Motion, Recharts | React 19.2.3 |
-| AI | Google Gemini via `@google/generative-ai` | `gemini-2.5-flash` |
+| AI | Google Gemini via `@google/generative-ai`, Groq via `@ai-sdk/groq` (fallback) | `gemini-2.5-flash`, `llama-4-scout` |
 | Database | MongoDB via Mongoose | 9.2.3 |
 | Auth | Custom JWT with `jose` (HS256), cookie-based sessions | 7-day expiry |
 | State | Zustand + `usePersistedState` (localStorage-backed) | 5.0.11 |
@@ -195,6 +195,7 @@ Jeans: ~33 kg CO₂e      Laptop: ~300-400 kg CO₂e     Gasoline: ~2.3 kg CO₂
 | 429 + `limit: 0` | `NO_QUOTA` | Key has zero free-tier allocation — permanent |
 | 429 + retry delay | `RATE_LIMIT` | Transient — UI shows countdown timer |
 | 401/403 | `INVALID_KEY` | Bad API key — prompt to update |
+| 503 | `SERVICE_BUSY` | Gemini overloaded — auto-fallback to Groq if `GROQ_API_KEY` is set, otherwise shows retry message |
 | No key configured | `NO_API_KEY` | Prompt to add key |
 
 ### BYOK (Bring Your Own Key)
@@ -301,6 +302,7 @@ getUserMedia (1280x720) → canvas scale (max 640px) → JPEG 0.6 quality
 | `MONGO_URI` | Yes | MongoDB connection string |
 | `ENCRYPTION_KEY` | Yes | 32-char string for JWT signing (HS256) |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key (fallback when no BYOK) |
+| `GROQ_API_KEY` | No | Groq API key for automatic fallback when Gemini returns 503. If unset, 503 errors surface to the user. |
 | `IPINFO_TOKEN` | No | Optional token for `ipinfo.io` request geolocation fallback used for regional AI context and geo backfill. |
 | `MAIL_USER` | No | SMTP from address |
 | `MAIL_PASS` | No | SMTP password |
