@@ -46,7 +46,7 @@ export default function ErrorTestPage() {
 
   return (
     <div className="min-h-screen p-8">
-      <div className="mx-auto max-w-md">
+      <div className="w-full mx-auto max-w-md">
         <h1 className="mb-6 text-2xl font-bold">Error Testing Page</h1>
 
         <div className="space-y-4">

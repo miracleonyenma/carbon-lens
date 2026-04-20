@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/page-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AuthGuard } from "@/components/providers/auth-guard";
-import { AppNav } from "@/components/carbon/app-nav";
 
 export default function AppLayout({
   children,
@@ -17,11 +16,10 @@ export default function AppLayout({
             <PageHeader
               options={{
                 showNavUser: true,
-                showSearch: false,
+                showSearch: true,
                 showThemeToggle: true,
               }}
             />
-            <AppNav />
             {children}
           </SidebarInset>
         </SidebarProvider>

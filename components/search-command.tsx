@@ -11,7 +11,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { SearchIcon, UserIcon } from "lucide-react";
+import {
+  SearchIcon,
+  BarChart3,
+  ScanLine,
+  Clock,
+  Camera,
+  Leaf,
+} from "lucide-react";
 
 interface SearchCommandProps {
   variant?: "header" | "large";
@@ -19,10 +26,28 @@ interface SearchCommandProps {
 
 const data = [
   {
-    title: "Personal info",
-    description: "Update your name, email, and contact information",
-    icon: UserIcon,
-    url: "/dashboard/personal-info",
+    title: "Dashboard",
+    description: "View your carbon footprint overview and trends",
+    icon: BarChart3,
+    url: "/dashboard",
+  },
+  {
+    title: "Scan",
+    description: "Upload a receipt or photo to analyze carbon footprint",
+    icon: ScanLine,
+    url: "/dashboard/scan",
+  },
+  {
+    title: "Live Camera",
+    description: "Real-time carbon detection using your camera",
+    icon: Camera,
+    url: "/dashboard/live",
+  },
+  {
+    title: "History",
+    description: "View all past scans and their carbon impact",
+    icon: Clock,
+    url: "/dashboard/history",
   },
 ];
 
@@ -49,10 +74,16 @@ export function SearchCommand({ variant = "header" }: SearchCommandProps) {
 
   const quickActions = [
     {
-      title: "Personal info",
-      description: "Update your name, email, and contact information",
-      icon: UserIcon,
-      href: "/dashboard/personal-info",
+      title: "Scan Receipt",
+      description: "Upload a receipt or photo",
+      icon: ScanLine,
+      href: "/dashboard/scan",
+    },
+    {
+      title: "Open Camera",
+      description: "Live carbon detection",
+      icon: Camera,
+      href: "/dashboard/live",
     },
   ];
 
@@ -66,7 +97,7 @@ export function SearchCommand({ variant = "header" }: SearchCommandProps) {
           <div className="text-muted-foreground group-focus-within:text-primary absolute top-1/2 left-4 -translate-y-1/2 transition-colors">
             <SearchIcon className="h-5 w-5" />
           </div>
-          Search Bucket
+          Search Carbon Lens
           <kbd className="bg-muted pointer-events-none absolute top-1/2 right-4 hidden h-6 -translate-y-1/2 items-center gap-1 rounded border px-2 font-mono text-[11px] font-medium opacity-100 select-none sm:flex">
             <span className="text-xs">⌘</span>K
           </kbd>
@@ -77,7 +108,7 @@ export function SearchCommand({ variant = "header" }: SearchCommandProps) {
           className="group bg-neutral-100 dark:bg-muted  text-muted-foreground hover:bg-muted focus-visible:bg-background focus-visible:ring-primary relative flex h-9 w-full items-center justify-start rounded-full px-4 text-sm font-medium transition-colors focus-visible:ring-1 focus-visible:outline-hidden sm:w-64 lg:w-80"
         >
           <SearchIcon className="mr-2 h-4 w-4" />
-          <span className="hidden lg:inline-flex">Search Bucket</span>
+          <span className="hidden lg:inline-flex">Search Carbon Lens</span>
           <span className="lg:hidden">Search...</span>
           <kbd className="bg-neutral-50 dark:bg-muted pointer-events-none absolute top-1/2 right-2 hidden h-5 -translate-y-1/2 items-center gap-1 rounded-lg border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex">
             <span className="text-xs">⌘</span>K

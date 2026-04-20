@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full mx-auto max-w-6xl px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-muted" />
           <div className="grid gap-4 md:grid-cols-4">
@@ -88,7 +88,7 @@ export default function DashboardPage() {
   const hasData = stats && stats.overview.totalScans > 0;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="w-full mx-auto max-w-6xl px-4 py-8">
       {/* Header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>

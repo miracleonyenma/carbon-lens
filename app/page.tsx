@@ -1,192 +1,106 @@
 import Link from "next/link";
-import { Leaf, ScanLine, BarChart3, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Leaf,
+  ScanLine,
+  BarChart3,
+  ArrowRight,
+  Sparkles,
+  Camera,
+  FileImage,
+  Type,
+  TrendingDown,
+  Lightbulb,
+  Globe,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen flex-col bg-background font-sans">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <Leaf className="h-6 w-6 text-primary" />
-            Carbon Lens
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </nav>
+const features = [
+  {
+    icon: Camera,
+    title: "Live Camera Scanning",
+    description:
+      "Point your camera at any product, meal, or item and get real-time carbon footprint analysis powered by Gemini AI.",
+    span: "sm:col-span-2",
+    accent: true,
+  },
+  {
+    icon: FileImage,
+    title: "Receipt & Photo Scanning",
+    description:
+      "Upload receipts, grocery bags, or photos of anything — AI identifies items and estimates their carbon impact.",
+  },
+  {
+    icon: Sparkles,
+    title: "Gemini AI Analysis",
+    description:
+      "Google Gemini vision models identify products and calculate lifecycle CO₂e using environmental research data.",
+  },
+  {
+    icon: TrendingDown,
+    title: "Track Your Trend",
+    description:
+      "Watch your carbon footprint change over time with monthly charts and category breakdowns.",
+  },
+  {
+    icon: Lightbulb,
+    title: "Smart Swap Suggestions",
+    description:
+      "Every high-impact item comes with a lower-carbon alternative and the exact CO₂ you'd save.",
+  },
+  {
+    icon: Type,
+    title: "Manual Item Entry",
+    description:
+      "No camera? Just type what you bought and get instant carbon estimates for each item.",
+  },
+  {
+    icon: BarChart3,
+    title: "Category Breakdown",
+    description:
+      "See which categories — meat, dairy, produce — contribute most to your footprint.",
+  },
+  {
+    icon: Globe,
+    title: "Built for Earth Day",
+    description:
+      "A practical tool for everyday climate action. Small changes, compounded, make a planet-sized difference.",
+  },
+];
 
-      {/* Hero */}
-      <main className="flex-1">
-        <section className="mx-auto max-w-6xl px-4 py-20 text-center md:py-32">
-          <div className="mx-auto max-w-3xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-1.5 text-sm">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Powered by Google Gemini AI
-            </div>
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-              See the carbon cost of{" "}
-              <span className="text-primary">every purchase</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              Upload your grocery receipts and instantly see the carbon
-              footprint of each item. Get smarter swaps, track trends, and make
-              your shopping more sustainable.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                href="/register"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-8 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                Start Scanning Free
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex h-12 items-center gap-2 rounded-full border px-8 font-medium transition-colors hover:bg-muted"
-              >
-                Log In
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section className="border-t bg-muted/30 py-20">
-          <div className="mx-auto max-w-6xl px-4">
-            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight">
-              How it works
-            </h2>
-            <div className="grid gap-8 md:grid-cols-3">
-              <StepCard
-                step={1}
-                icon={<ScanLine className="h-8 w-8" />}
-                title="Upload a receipt"
-                description="Take a photo of your grocery receipt or type in your items manually."
-              />
-              <StepCard
-                step={2}
-                icon={<Sparkles className="h-8 w-8" />}
-                title="AI analyzes impact"
-                description="Gemini identifies each item and estimates its carbon footprint using lifecycle data."
-              />
-              <StepCard
-                step={3}
-                icon={<BarChart3 className="h-8 w-8" />}
-                title="Track & improve"
-                description="See trends, get lower-carbon swap suggestions, and reduce your footprint over time."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Impact colors demo */}
-        <section className="py-20">
-          <div className="mx-auto max-w-6xl px-4 text-center">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight">
-              Every item, color-coded
-            </h2>
-            <p className="mx-auto mb-12 max-w-xl text-muted-foreground">
-              Instantly see which items have the biggest impact on your
-              footprint
-            </p>
-            <div className="mx-auto grid max-w-2xl gap-3">
-              <DemoItem
-                name="Organic spinach"
-                carbon="0.3 kg"
-                level="low"
-                swap={null}
-              />
-              <DemoItem
-                name="Cheddar cheese (500g)"
-                carbon="6.8 kg"
-                level="medium"
-                swap="Try plant-based cheese — save 5.2 kg CO₂"
-              />
-              <DemoItem
-                name="Ground beef (1 kg)"
-                carbon="27.0 kg"
-                level="high"
-                swap="Try lentils or mushroom mince — save 25.5 kg CO₂"
-              />
-              <DemoItem
-                name="Oat milk (1L)"
-                carbon="0.9 kg"
-                level="low"
-                swap={null}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="border-t bg-primary/5 py-20">
-          <div className="mx-auto max-w-6xl px-4 text-center">
-            <Leaf className="mx-auto mb-6 h-12 w-12 text-primary" />
-            <h2 className="text-3xl font-bold tracking-tight">
-              Ready to see your carbon footprint?
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-              It takes 30 seconds. Upload a receipt, see results instantly.
-            </p>
-            <Link
-              href="/register"
-              className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-primary px-8 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Get Started — It&apos;s Free
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Leaf className="h-4 w-4 text-primary" />
-            Carbon Lens
-          </div>
-          <p>Built for Earth Day 2026 🌍</p>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-function StepCard({
-  step,
-  icon,
+function FeatureCard({
+  icon: Icon,
   title,
   description,
-}: {
-  step: number;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
+  span,
+  accent,
+}: (typeof features)[0]) {
   return (
-    <div className="relative rounded-2xl border bg-card p-8 text-center">
-      <div className="absolute -top-4 left-1/2 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-        {step}
+    <div
+      className={cn(
+        "group border-border bg-card hover:border-primary/30 relative flex flex-col gap-4 rounded-2xl border p-6 transition-all duration-300 hover:shadow-lg",
+        span,
+        accent && "bg-primary/5 border-primary/20"
+      )}
+    >
+      <div
+        className={cn(
+          "flex size-10 items-center justify-center rounded-xl",
+          accent
+            ? "bg-primary/10 text-primary"
+            : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors duration-300"
+        )}
+      >
+        <Icon className="size-5" />
       </div>
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-        {icon}
+      <div className="space-y-1.5">
+        <h3 className="text-foreground text-base font-semibold tracking-tight">
+          {title}
+        </h3>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {description}
+        </p>
       </div>
-      <h3 className="mb-2 text-lg font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -226,5 +140,158 @@ function DemoItem({
       </div>
       <span className="font-bold">{carbon} CO₂</span>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <main>
+      {/* Sticky nav */}
+      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
+        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2 text-lg font-bold">
+            <Leaf className="h-6 w-6 text-primary" />
+            Carbon Lens
+          </Link>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/login">Log in</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/register">Get Started</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="w-full p-4 pt-20 pb-12">
+        <div className="mx-auto w-full max-w-4xl">
+          <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
+            AI-powered carbon footprint tracking
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
+            See the carbon cost of{" "}
+            <span className="text-primary">everything</span> you buy.
+          </h1>
+          <p className="text-muted-foreground mt-4 max-w-2xl text-lg sm:text-xl">
+            Point your camera at any product, upload a receipt, or type what you
+            bought. Gemini AI estimates the carbon footprint of each item and
+            suggests lower-impact swaps.
+          </p>
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+            <Button size="lg" className="text-base" asChild>
+              <Link href="/register">
+                Start Scanning Free <ArrowRight className="ml-2 size-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-base" asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="w-full px-4 py-14">
+        <div className="mx-auto w-full max-w-4xl">
+          <div className="mb-10 max-w-4xl">
+            <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
+              Features
+            </p>
+            <h2 className="text-3xl tracking-tight md:text-4xl">
+              Everything you need to track your impact.
+            </h2>
+            <p className="text-muted-foreground mt-2 text-lg">
+              Scan anything — receipts, products, meals — and get instant carbon
+              intelligence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <FeatureCard key={feature.title} {...feature} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Demo */}
+      <section className="w-full px-4 py-14">
+        <div className="mx-auto w-full max-w-4xl">
+          <div className="mb-8 max-w-4xl">
+            <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
+              Live preview
+            </p>
+            <h2 className="text-3xl tracking-tight md:text-4xl">
+              Every item, color-coded by impact.
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Instantly see which items have the biggest footprint — and what to
+              swap them for.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <DemoItem
+              name="Organic spinach"
+              carbon="0.3 kg"
+              level="low"
+              swap={null}
+            />
+            <DemoItem
+              name="Cheddar cheese (500g)"
+              carbon="6.8 kg"
+              level="medium"
+              swap="Try plant-based cheese — save 5.2 kg CO₂"
+            />
+            <DemoItem
+              name="Ground beef (1 kg)"
+              carbon="27.0 kg"
+              level="high"
+              swap="Try lentils or mushroom mince — save 25.5 kg CO₂"
+            />
+            <DemoItem
+              name="Oat milk (1L)"
+              carbon="0.9 kg"
+              level="low"
+              swap={null}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="w-full px-4 py-14">
+        <div className="bg-primary/5 border-primary/20 mx-auto w-full max-w-4xl rounded-2xl border p-12 text-center">
+          <Leaf className="mx-auto mb-6 h-12 w-12 text-primary" />
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Ready to see your carbon footprint?
+          </h2>
+          <p className="text-muted-foreground mx-auto mt-4 max-w-xl">
+            It takes 30 seconds. Scan anything, see results instantly.
+          </p>
+          <div className="mt-8">
+            <Button size="lg" className="text-base" asChild>
+              <Link href="/register">
+                Get Started — It&apos;s Free
+                <ArrowRight className="ml-2 size-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t py-8">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Leaf className="h-4 w-4 text-primary" />
+            Carbon Lens
+          </div>
+          <p>Built for Earth Day 2026 🌍</p>
+        </div>
+      </footer>
+    </main>
   );
 }
