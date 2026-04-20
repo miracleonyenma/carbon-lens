@@ -264,6 +264,7 @@ export function ClimateContext({
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
+        {/* CO₂ — progress bar + comparison in footer, no stats rows */}
         <StatCard
           className="xl:col-span-3"
           label={
@@ -282,11 +283,36 @@ export function ClimateContext({
               </span>
             </>
           }
+          footerLabel={
+            <div className="w-full flex flex-wrap items-baseline-last justify-between">
+              <div className="flex flex-col gap-0">
+                <span className="text-xl">
+                  +{co2PercentAboveBaseline.toFixed(1)}%
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  Above preindustrial
+                </span>
+              </div>
+              <div className="text-muted-foreground text-xs">
+                {new Date(climate.co2.latestDate).toLocaleDateString()} ·{" "}
+                {climate.co2.source}
+                {climate.co2.isFallback ? " (fallback)" : ""}
+              </div>
+            </div>
+          }
+        >
+          <SplitProgressBar value={co2Progress} />
+          <span className="text-muted-foreground text-xs">
+            {co2AboveBaseline.toFixed(2)} ppm above the 280 ppm baseline
+          </span>
+        </StatCard>
+
+        {/* CO₂ detail stats — no progress bar, just stat rows */}
+        <StatCard
+          className="xl:col-span-3"
+          label="CO₂ Details"
+          value=""
           stats={[
-            {
-              label: "Above preindustrial",
-              value: `+${co2PercentAboveBaseline.toFixed(1)}%`,
-            },
             {
               label: `${new Date(
                 climate.co2.latestDate
@@ -302,28 +328,65 @@ export function ClimateContext({
               value: `+${climate.co2.since1974DeltaPpm.toFixed(2)} ppm`,
             },
           ]}
-          footerLabel={
-            <>
-              Latest reading on{" "}
-              {new Date(climate.co2.latestDate).toLocaleDateString()} ·{" "}
-              {climate.co2.source}
-              {climate.co2.isFallback ? " (fallback)" : ""}
-            </>
-          }
-        >
-          <div className="w-full space-y-2">
-            <SplitProgressBar value={co2Progress} barHeight={18} />
-            <span className="text-muted-foreground text-xs">
-              {co2AboveBaseline.toFixed(2)} ppm above the 280 ppm preindustrial
-              baseline.
-            </span>
-          </div>
-        </StatCard>
+          statsVariant="stacked"
+        />
 
         {climate.signals.map((signal) => {
           const Icon = signalIcons[signal.id];
           const derived = deriveSignalMetrics(signal);
+          const needsProgress = [
+            "temperature",
+            "renewables",
+            "ice",
+            "species",
+          ].includes(signal.id);
 
+          if (needsProgress) {
+            return (
+              <StatCard
+                key={signal.id}
+                label={
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span>{signal.label}</span>
+                  </div>
+                }
+                value={
+                  <>
+                    {signal.value}
+                    <span className="text-muted-foreground ml-1 text-sm font-medium">
+                      {signal.unitLabel}
+                    </span>
+                  </>
+                }
+                footerLabel={
+                  <div className="w-full flex flex-wrap items-baseline-last justify-between">
+                    <div className="flex flex-col gap-0">
+                      <span className="text-xl">{derived.comparisonValue}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {derived.comparisonLabel}
+                      </span>
+                    </div>
+                    <span className="text-muted-foreground text-xs">
+                      {signal.source}
+                    </span>
+                  </div>
+                }
+              >
+                <SplitProgressBar
+                  value={derived.progressValue}
+                  filledClassName={cn(signalAccent[signal.id])}
+                />
+                <span className="text-muted-foreground text-xs">
+                  {derived.progressCaption}
+                </span>
+              </StatCard>
+            );
+          }
+
+          /* forest, plastic — no progress bar, use stats rows */
           return (
             <StatCard
               key={signal.id}
@@ -351,18 +414,7 @@ export function ClimateContext({
                 { label: "Source", value: signal.source },
               ]}
               footerLabel={signal.description}
-            >
-              <div className="w-full space-y-2">
-                <SplitProgressBar
-                  value={derived.progressValue}
-                  barHeight={18}
-                  filledClassName={cn(signalAccent[signal.id])}
-                />
-                <span className="text-muted-foreground text-xs">
-                  {derived.progressCaption}
-                </span>
-              </div>
-            </StatCard>
+            />
           );
         })}
       </div>

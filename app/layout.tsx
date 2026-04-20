@@ -7,6 +7,7 @@ import NextTopLoader from "nextjs-toploader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemedToaster } from "@/components/themed-toaster";
+import { PageFooter } from "@/components/page-footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,6 +39,7 @@ export default function RootLayout({
           <NextTopLoader showSpinner={false} />
           <TooltipProvider>
             <AuthProvider>{children}</AuthProvider>
+            <PageFooter />
           </TooltipProvider>
           <ThemedToaster />
         </ThemeProvider>
