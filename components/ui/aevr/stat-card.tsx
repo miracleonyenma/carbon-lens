@@ -137,9 +137,9 @@ export function StatCard({
         <CardFooter className="p-0">
           <div className="flex w-full items-center justify-between gap-4 px-0">
             {footerLabel && (
-              <span className="text-muted-foreground flex items-center gap-1 p-2 py-1 text-sm">
+              <div className="text-muted-foreground grow flex items-center gap-1 p-2 py-1 text-sm">
                 {footerLabel}
-              </span>
+              </div>
             )}
             {footerAction && <div className="flex gap-2">{footerAction}</div>}
           </div>

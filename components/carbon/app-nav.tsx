@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, ScanLine, Clock, Leaf } from "lucide-react";
+import { BarChart3, ScanLine, Clock, Leaf, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: BarChart3 },
   { href: "/dashboard/scan", label: "Scan", icon: ScanLine },
   { href: "/dashboard/history", label: "History", icon: Clock },
+  { href: "/dashboard/climate", label: "Climate", icon: Globe },
 ];
 
 export function AppNav() {
@@ -16,7 +17,7 @@ export function AppNav() {
 
   return (
     <nav className="border-b px-4">
-      <div className="mx-auto flex max-w-6xl items-center gap-1">
+      <div className="mx-auto flex max-w-5xl items-center gap-1">
         <Link
           href="/dashboard"
           className="mr-4 flex items-center gap-2 py-3 font-bold"

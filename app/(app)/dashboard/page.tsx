@@ -16,7 +16,7 @@ import {
   CarbonTrendChart,
   CategoryBreakdownChart,
 } from "@/components/carbon/carbon-chart";
-import { ClimateContext } from "@/components/carbon/climate-context";
+import { ClimateHighlights } from "@/components/carbon/climate-context";
 import { ImpactBadge } from "@/components/carbon/impact-badge";
 import { useAuth } from "@/components/providers/auth-provider";
 import type { ClimateContext as ClimateContextData } from "@/lib/climate";
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="w-full mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full mx-auto max-w-5xl px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-muted" />
           <div className="grid gap-4 md:grid-cols-4">
@@ -95,7 +95,7 @@ export default function DashboardPage() {
   const hasData = stats && stats.overview.totalScans > 0;
 
   return (
-    <div className="w-full mx-auto max-w-6xl px-4 py-8">
+    <div className="w-full mx-auto max-w-5xl px-4 py-8">
       {/* Header */}
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
       {!hasData ? (
         <div className="space-y-6">
           {climate && (
-            <ClimateContext
+            <ClimateHighlights
               climate={climate}
               regionContext={{
                 country: user?.geoCountry,
@@ -149,8 +149,9 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6">
           {climate && (
-            <ClimateContext
+            <ClimateHighlights
               climate={climate}
+              userTotalCarbonKg={stats.overview.totalCarbonKg}
               regionContext={{
                 country: user?.geoCountry,
                 currency: user?.geoCurrency,

@@ -14,7 +14,7 @@ function ErrorContent() {
     searchParams.get("message") || "An error occurred during authentication";
 
   return (
-    <div className="wrapper w-full max-w-3xl mx-auto px-4 h-full py-12 flex flex-col gap-2">
+    <div className="wrapper w-full max-w-5xl mx-auto px-4 h-full py-12 flex flex-col gap-2">
       <header>
         <div className="wrapper">
           <h1 className="text-4xl font-bold text-background lg:text-foreground">

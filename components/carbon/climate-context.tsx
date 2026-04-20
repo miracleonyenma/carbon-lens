@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   Cloud,
   Thermometer,
@@ -8,13 +9,15 @@ import {
   Recycle,
   Zap,
   ShieldAlert,
+  ArrowRight,
+  Leaf,
 } from "lucide-react";
 import { SplitProgressBar } from "@/components/ui/aevr/progress";
 import { StatCard } from "@/components/ui/aevr/stat-card";
 import { cn } from "@/lib/utils";
 import type { ClimateContext as ClimateContextData } from "@/lib/climate";
 
-type RegionContext = {
+export type RegionContext = {
   country?: string;
   currency?: string;
   source?: string;
@@ -38,6 +41,194 @@ const signalAccent = {
   plastic: "bg-slate-500",
 } as const;
 
+/* -------------------------------------------------------------------------- */
+/*  Compact highlights — 3 cards for the dashboard                           */
+/* -------------------------------------------------------------------------- */
+
+interface ClimateHighlightsProps {
+  climate: ClimateContextData;
+  /** User's personal total carbon so we can contextualise it */
+  userTotalCarbonKg?: number;
+  regionContext?: RegionContext | null;
+}
+
+export function ClimateHighlights({
+  climate,
+  userTotalCarbonKg,
+  regionContext,
+}: ClimateHighlightsProps) {
+  const preindustrialBaseline = 280;
+  const co2AboveBaseline = climate.co2.latestPpm - preindustrialBaseline;
+  const co2Progress = clampPercent((climate.co2.latestPpm / 450) * 100);
+
+  const tempSignal = climate.signals.find((s) => s.id === "temperature");
+  const tempDerived = tempSignal ? deriveSignalMetrics(tempSignal) : null;
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">
+          Climate Snapshot
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Live global signals that frame your personal footprint.
+        </p>
+        {regionContext?.country && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            AI insights localized to {regionContext.country}
+            {regionContext.currency ? ` · ${regionContext.currency}` : ""}
+            {regionContext.source
+              ? ` · ${humanizeGeoSource(regionContext.source)}`
+              : ""}
+          </p>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {/* 1 · Live CO₂ */}
+        <StatCard
+          label={
+            <div className="flex items-center gap-2">
+              <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Cloud className="h-4 w-4" />
+              </span>
+              <span>Atmospheric CO₂</span>
+            </div>
+          }
+          value={
+            <>
+              {climate.co2.latestPpm.toFixed(2)}
+              <span className="text-muted-foreground ml-1 text-base font-medium">
+                ppm
+              </span>
+            </>
+          }
+          footerLabel={
+            <div className="w-full items-baseline-last flex flex-wrap justify-between">
+              <div className="flex flex-col gap-0">
+                <span className="text-xl">
+                  {co2AboveBaseline.toFixed(2)} ppm
+                </span>
+                <span className="text-muted-foreground text-xs">
+                  Above preindustrial
+                </span>
+              </div>
+
+              <div>
+                {new Date(climate.co2.latestDate).toLocaleDateString()} ·{" "}
+                {climate.co2.source.split("·")[0].trim()}
+                {climate.co2.isFallback ? " (fallback)" : ""}
+              </div>
+            </div>
+          }
+        >
+          <SplitProgressBar value={co2Progress} />
+          <span className="text-muted-foreground text-xs">
+            {co2AboveBaseline.toFixed(0)} ppm above the 280 ppm baseline
+          </span>
+        </StatCard>
+
+        {/* 2 · Global temperature */}
+        {tempSignal && tempDerived && (
+          <StatCard
+            label={
+              <div className="flex items-center gap-2">
+                <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                  <Thermometer className="h-4 w-4" />
+                </span>
+                <span>{tempSignal.label}</span>
+              </div>
+            }
+            value={
+              <>
+                {tempSignal.value}
+                <span className="text-muted-foreground ml-1 text-base font-medium">
+                  {tempSignal.unitLabel}
+                </span>
+              </>
+            }
+            footerLabel={
+              <div className="w-full items-baseline-last flex flex-wrap justify-between">
+                <div className="flex flex-col gap-0">
+                  <span className="text-xl">{tempDerived.progressValue}%</span>
+                  <span className="text-muted-foreground text-xs">
+                    {tempDerived.comparisonLabel}
+                  </span>
+                </div>
+                <span className="text-muted-foreground text-xs">
+                  {tempDerived.progressCaption}
+                </span>
+              </div>
+            }
+          >
+            <SplitProgressBar
+              value={tempDerived.progressValue}
+              filledClassName="bg-orange-500"
+            />
+            <span className="text-muted-foreground text-xs">
+              {tempDerived.progressCaption}
+            </span>
+          </StatCard>
+        )}
+
+        {/* 3 · Personalized — user footprint contextualised */}
+        <StatCard
+          label={
+            <div className="flex items-center gap-2">
+              <span className="rounded-lg bg-primary/10 p-2 text-primary">
+                <Leaf className="h-4 w-4" />
+              </span>
+              <span>Your Footprint</span>
+            </div>
+          }
+          value={
+            userTotalCarbonKg != null && userTotalCarbonKg > 0 ? (
+              <>
+                {userTotalCarbonKg.toFixed(1)}
+                <span className="text-muted-foreground ml-1 text-base font-medium">
+                  kg CO₂
+                </span>
+              </>
+            ) : (
+              <>
+                0
+                <span className="text-muted-foreground ml-1 text-base font-medium">
+                  kg CO₂
+                </span>
+              </>
+            )
+          }
+          stats={[
+            {
+              label: "Tracked purchases",
+              value:
+                userTotalCarbonKg != null && userTotalCarbonKg > 0
+                  ? "Active"
+                  : "No scans yet",
+            },
+          ]}
+          footerLabel={
+            userTotalCarbonKg != null && userTotalCarbonKg > 0
+              ? "Total from all scanned receipts"
+              : "Scan a receipt to start tracking"
+          }
+        />
+      </div>
+
+      <Link
+        href="/dashboard/climate"
+        className="flex items-center gap-1 text-sm text-primary hover:underline"
+      >
+        View all climate stats <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Full climate context — all stats for the dedicated page                  */
+/* -------------------------------------------------------------------------- */
+
 export function ClimateContext({
   climate,
   regionContext,
@@ -58,12 +249,12 @@ export function ClimateContext({
           Global Climate Context
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Live atmospheric CO2 plus wider planetary signals to frame your
+          Live atmospheric CO₂ plus wider planetary signals to frame your
           personal footprint.
         </p>
         {regionContext?.country && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Regional context for AI insights: {regionContext.country}
+          <p className="mt-1 text-xs text-muted-foreground">
+            AI insights localized to {regionContext.country}
             {regionContext.currency ? ` · ${regionContext.currency}` : ""}
             {regionContext.source
               ? ` · ${humanizeGeoSource(regionContext.source)}`
@@ -80,7 +271,7 @@ export function ClimateContext({
               <span className="rounded-lg bg-primary/10 p-2 text-primary">
                 <Cloud className="h-4 w-4" />
               </span>
-              <span>Atmospheric CO2</span>
+              <span>Atmospheric CO₂</span>
             </div>
           }
           value={
@@ -178,6 +369,10 @@ export function ClimateContext({
     </div>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Helpers                                                                  */
+/* -------------------------------------------------------------------------- */
 
 function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
   switch (signal.id) {
