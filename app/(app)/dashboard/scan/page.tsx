@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import {
@@ -43,7 +43,29 @@ export default function ScanPage() {
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [itemsText, setItemsText] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { key: geminiKey } = useGeminiKey();
+
+  // Cooldown timer tick
+  useEffect(() => {
+    if (cooldown <= 0) {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      return;
+    }
+    cooldownRef.current = setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, [cooldown > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFileSelect = useCallback(
     async (file: File) => {
@@ -69,6 +91,9 @@ export default function ScanPage() {
 
         if (!res.ok) {
           setErrorCode(data.code || null);
+          if (data.code === "RATE_LIMIT" && data.retryAfter) {
+            setCooldown(data.retryAfter);
+          }
           throw new Error(data.error || "Failed to analyze");
         }
 
@@ -83,7 +108,7 @@ export default function ScanPage() {
   );
 
   const handleTextSubmit = useCallback(async () => {
-    if (!itemsText.trim()) return;
+    if (!itemsText.trim() || cooldown > 0) return;
 
     setIsAnalyzing(true);
     setError(null);
@@ -106,6 +131,9 @@ export default function ScanPage() {
 
       if (!res.ok) {
         setErrorCode(data.code || null);
+        if (data.code === "RATE_LIMIT" && data.retryAfter) {
+          setCooldown(data.retryAfter);
+        }
         throw new Error(data.error || "Failed to analyze items");
       }
 
@@ -203,11 +231,13 @@ export default function ScanPage() {
               />
               <Button
                 onClick={handleTextSubmit}
-                disabled={!itemsText.trim() || isAnalyzing}
+                disabled={!itemsText.trim() || isAnalyzing || cooldown > 0}
                 className="w-full gap-2"
               >
                 {isAnalyzing ? (
                   <>Analyzing...</>
+                ) : cooldown > 0 ? (
+                  <>Wait {cooldown}s</>
                 ) : (
                   <>
                     <Leaf className="h-4 w-4" />

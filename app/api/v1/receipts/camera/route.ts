@@ -6,7 +6,15 @@ import { analyzeCameraFrame, GeminiError } from "@/lib/gemini";
 // Allow larger body for base64 camera frames
 export const maxDuration = 30;
 
+let cameraRequestCount = 0;
+
 export async function POST(request: NextRequest) {
+  cameraRequestCount++;
+  const reqId = cameraRequestCount;
+  const ts = new Date().toISOString();
+  console.log(
+    `[CAMERA #${reqId}] ${ts} — incoming POST /api/v1/receipts/camera`
+  );
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth-token")?.value;

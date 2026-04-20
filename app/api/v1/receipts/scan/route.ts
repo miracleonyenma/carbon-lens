@@ -5,7 +5,13 @@ import { analyzeImage, analyzeText, GeminiError } from "@/lib/gemini";
 import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
 
+let scanRequestCount = 0;
+
 export async function POST(request: NextRequest) {
+  scanRequestCount++;
+  const reqId = scanRequestCount;
+  const ts = new Date().toISOString();
+  console.log(`[SCAN #${reqId}] ${ts} — incoming POST /api/v1/receipts/scan`);
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth-token")?.value;

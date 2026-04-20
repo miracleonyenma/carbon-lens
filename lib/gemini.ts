@@ -11,7 +11,7 @@ function getModel(apiKey?: string) {
     );
   }
   const genAI = new GoogleGenerativeAI(key);
-  return genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  return genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 }
 
 export class GeminiError extends Error {
@@ -33,6 +33,13 @@ function handleGeminiError(error: unknown): never {
 
   // Rate limit / quota exceeded
   if (msg.includes("429") || msg.includes("quota")) {
+    // Check for zero-quota (key has no free tier access for this model)
+    if (msg.includes("limit: 0")) {
+      throw new GeminiError(
+        "This API key has no quota for the requested model. Please use a different API key.",
+        "NO_QUOTA"
+      );
+    }
     const retryMatch = msg.match(/retry in ([\d.]+)s/i);
     const retryAfter = retryMatch
       ? Math.ceil(parseFloat(retryMatch[1]))

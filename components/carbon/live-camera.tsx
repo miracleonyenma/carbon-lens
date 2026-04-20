@@ -46,9 +46,31 @@ export function LiveCamera() {
   const [result, setResult] = useState<CameraResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
     "environment"
   );
+
+  // Cooldown timer tick
+  useEffect(() => {
+    if (cooldown <= 0) {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      return;
+    }
+    cooldownRef.current = setInterval(() => {
+      setCooldown((c) => {
+        if (c <= 1) {
+          if (cooldownRef.current) clearInterval(cooldownRef.current);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, [cooldown > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startCamera = useCallback(async () => {
     try {
@@ -85,7 +107,7 @@ export function LiveCamera() {
   }, []);
 
   const captureAndAnalyze = useCallback(async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current || cooldown > 0) return;
 
     setIsAnalyzing(true);
     setError(null);
@@ -125,6 +147,9 @@ export function LiveCamera() {
       if (!response.ok) {
         const err = await response.json();
         setErrorCode(err.code || null);
+        if (err.code === "RATE_LIMIT" && err.retryAfter) {
+          setCooldown(err.retryAfter);
+        }
         throw new Error(err.error || "Analysis failed");
       }
 
@@ -135,7 +160,7 @@ export function LiveCamera() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [geminiKey]);
+  }, [geminiKey, cooldown]);
 
   const switchCamera = useCallback(() => {
     stopCamera();
@@ -220,15 +245,17 @@ export function LiveCamera() {
                 <Button
                   size="lg"
                   onClick={captureAndAnalyze}
-                  disabled={isAnalyzing}
+                  disabled={isAnalyzing || cooldown > 0}
                   className="rounded-full px-8 bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   {isAnalyzing ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : cooldown > 0 ? (
+                    <>{cooldown}s</>
                   ) : (
                     <Scan className="mr-2 h-4 w-4" />
                   )}
-                  Scan
+                  {cooldown > 0 ? "Wait" : "Scan"}
                 </Button>
                 <Button
                   variant="secondary"

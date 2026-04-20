@@ -16,7 +16,9 @@ import { Settings, Key, ExternalLink, Check, X } from "lucide-react";
 import { usePersistedState } from "@/hooks/aevr/use-persisted-state";
 
 export function useGeminiKey() {
-  const [key, setKey] = usePersistedState<string>("gemini-api-key", "");
+  const { state: key, setState: setKey } = usePersistedState<string>("", {
+    storageKey: "gemini-api-key",
+  });
   return { key, setKey };
 }
 
