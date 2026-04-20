@@ -148,7 +148,7 @@ export default function Home() {
     <main>
       {/* Sticky nav */}
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
             <Leaf className="h-6 w-6 text-primary" />
             Carbon Lens
@@ -166,11 +166,11 @@ export default function Home() {
 
       {/* Hero */}
       <section className="w-full p-4 pt-20 pb-12">
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-5xl">
           <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
             AI-powered carbon footprint tracking
           </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="mt-3 text-2xl max-w-2xl  tracking-tight md:text-5xl">
             See the carbon cost of{" "}
             <span className="text-primary">everything</span> you buy.
           </h1>
@@ -179,7 +179,7 @@ export default function Home() {
             bought. Gemini AI estimates the carbon footprint of each item and
             suggests lower-impact swaps.
           </p>
-          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
+          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row">
             <Button size="lg" className="text-base" asChild>
               <Link href="/dashboard">
                 Start Scanning Free <ArrowRight className="ml-2 size-4" />
@@ -192,10 +192,32 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Leaderboard */}
+      <section className="w-full">
+        <div className="mx-auto w-full max-w-7xl py-14 md:py-28 px-4 rounded-3xl bg-neutral-50 dark:bg-neutral-900">
+          <div className="mb-8 text-center">
+            <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
+              Leaderboard
+            </p>
+            <h2 className="text-3xl tracking-tight md:text-4xl">
+              See who&apos;s leading the charge.
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Every scan earns you an Eco Score. Climb the ranks from 🌱
+              Seedling to 🌍 Guardian.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-5xl w-full">
+            <LeaderboardPreview />
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="w-full px-4 py-14">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-10 max-w-6xl">
+        <div className="mx-auto w-full max-w-5xl">
+          <div className="mb-10 max-w-5xl">
             <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
               Features
             </p>
@@ -218,8 +240,8 @@ export default function Home() {
 
       {/* Demo */}
       <section className="w-full px-4 py-14">
-        <div className="mx-auto w-full max-w-6xl">
-          <div className="mb-8 max-w-6xl">
+        <div className="mx-auto w-full max-w-5xl">
+          <div className="mb-8 max-w-5xl">
             <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
               Live preview
             </p>
@@ -261,29 +283,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Leaderboard */}
-      <section className="w-full px-4 py-14">
-        <div className="mx-auto w-full max-w-7xl">
-          <div className="mb-8 max-w-6xl">
-            <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
-              Leaderboard
-            </p>
-            <h2 className="text-3xl tracking-tight md:text-4xl">
-              See who&apos;s leading the charge.
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Every scan earns you an Eco Score. Climb the ranks from 🌱
-              Seedling to 🌍 Guardian.
-            </p>
-          </div>
-
-          <LeaderboardPreview />
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="w-full px-4 py-14">
-        <div className="bg-primary/5 border-primary/20 mx-auto w-full max-w-6xl rounded-2xl border p-12 text-center">
+        <div className="bg-primary/5 border-primary/20 mx-auto w-full max-w-5xl rounded-2xl border p-12 text-center">
           <Leaf className="mx-auto mb-6 h-12 w-12 text-primary" />
           <h2 className="text-3xl font-semibold tracking-tight">
             Ready to see your carbon footprint?

@@ -1,7 +1,14 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Trophy, Medal, Award, Shield, Users, ChevronDown } from "lucide-react";
+import {
+  Trophy,
+  Medal,
+  Award,
+  Verified,
+  Users,
+  ChevronDown,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TierBadge } from "./leaderboard-badges";
 import type { EcoTier } from "@/lib/eco-score";
@@ -80,7 +87,7 @@ function EntryRow({
             {entry.nickname}
           </span>
           {entry.isVerified && (
-            <Shield className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+            <Verified className="h-3.5 w-3.5 shrink-0 text-blue-500" />
           )}
           {!entry.isVerified && (
             <Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />

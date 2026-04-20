@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Trophy, Shield, Users, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Trophy, Verified, Users, ArrowRight } from "lucide-react";
+import SummaryCard, {
+  type SummaryItem,
+} from "@/components/ui/aevr/summary-card";
 import { TierBadge } from "./leaderboard-badges";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { EcoTier } from "@/lib/eco-score";
 
 interface PreviewEntry {
@@ -20,79 +23,42 @@ interface PreviewEntry {
   streakWeeks: number;
 }
 
-// Static fallback data shown when the API hasn't returned yet or has no entries
-const PLACEHOLDER_ENTRIES: PreviewEntry[] = [
-  {
-    _id: "p1",
-    rank: 1,
-    nickname: "Ava G.",
-    ecoScore: 82,
-    tier: "guardian",
-    isVerified: true,
-    country: "SE",
-    totalScans: 34,
-    streakWeeks: 8,
-  },
-  {
-    _id: "p2",
-    rank: 2,
-    nickname: "Liam K.",
-    ecoScore: 74,
-    tier: "grove",
-    isVerified: true,
-    country: "CA",
-    totalScans: 28,
-    streakWeeks: 6,
-  },
-  {
-    _id: "p3",
-    rank: 3,
-    nickname: "EcoShopper",
-    ecoScore: 68,
-    tier: "grove",
-    isVerified: false,
-    country: "US",
-    totalScans: 19,
-    streakWeeks: 4,
-  },
-  {
-    _id: "p4",
-    rank: 4,
-    nickname: "Mina R.",
-    ecoScore: 55,
-    tier: "grove",
-    isVerified: true,
-    country: "DE",
-    totalScans: 15,
-    streakWeeks: 3,
-  },
-  {
-    _id: "p5",
-    rank: 5,
-    nickname: "GreenCart",
-    ecoScore: 41,
-    tier: "sprout",
-    isVerified: false,
-    country: "NG",
-    totalScans: 9,
-    streakWeeks: 2,
-  },
-];
+const medals = ["🥇", "🥈", "🥉"];
 
-function RankDisplay({ rank }: { rank: number }) {
-  const medals = ["🥇", "🥈", "🥉"];
-  if (rank <= 3) {
-    return <span className="text-lg">{medals[rank - 1]}</span>;
-  }
+function EntryLabel({ entry }: { entry: PreviewEntry }) {
   return (
-    <span className="text-sm font-medium text-muted-foreground">{rank}</span>
+    <div className="flex items-center gap-2">
+      <span className="text-base">
+        {entry.rank <= 3 ? medals[entry.rank - 1] : `#${entry.rank}`}
+      </span>
+      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+        {entry.nickname}
+      </span>
+      {entry.isVerified ? (
+        <Verified className="size-3.5 shrink-0 text-blue-500" />
+      ) : (
+        <Users className="size-3.5 shrink-0 text-muted-foreground" />
+      )}
+      {entry.country && (
+        <span className="text-xs text-muted-foreground">{entry.country}</span>
+      )}
+    </div>
+  );
+}
+
+function EntryValue({ entry }: { entry: PreviewEntry }) {
+  return (
+    <div className="flex items-center gap-2">
+      <TierBadge tier={entry.tier} />
+      <span className="text-lg font-bold tabular-nums">{entry.ecoScore}</span>
+    </div>
   );
 }
 
 export function LeaderboardPreview() {
-  const [entries, setEntries] = useState<PreviewEntry[]>(PLACEHOLDER_ENTRIES);
+  const [entries, setEntries] = useState<PreviewEntry[] | null>(null);
   const [total, setTotal] = useState(0);
-  const [isLive, setIsLive] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchTop() {
@@ -103,106 +69,62 @@ export function LeaderboardPreview() {
         if (data.entries && data.entries.length > 0) {
           setEntries(data.entries);
           setTotal(data.total);
-          setIsLive(true);
         }
       } catch {
-        // keep placeholders
+        // leave entries null
+      } finally {
+        setLoading(false);
       }
     }
     fetchTop();
   }, []);
 
-  return (
-    <div className="w-full rounded-2xl border bg-card shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-yellow-100 dark:bg-yellow-900/30">
-            <Trophy className="size-5 text-yellow-600 dark:text-yellow-400" />
-          </div>
-          <div>
-            <h3 className="font-semibold">Eco Leaderboard</h3>
-            <p className="text-xs text-muted-foreground">
-              {isLive
-                ? `${total} players ranked by Eco Score`
-                : "Top eco-shoppers ranked by impact"}
-            </p>
-          </div>
-        </div>
-        <Link href="/dashboard/leaderboard">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-primary">
-            View all <ArrowRight className="size-3.5" />
-          </Button>
-        </Link>
-      </div>
-
-      {/* Entries */}
-      <div className="divide-y">
-        {entries.map((entry) => (
-          <div
-            key={entry._id}
-            className={cn(
-              "flex items-center gap-3 px-6 py-3 transition-colors hover:bg-muted/30",
-              entry.rank <= 3 && "bg-muted/20"
-            )}
-          >
-            {/* Rank */}
-            <div className="flex w-8 shrink-0 justify-center">
-              <RankDisplay rank={entry.rank} />
-            </div>
-
-            {/* Name */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="truncate text-sm font-medium">
-                  {entry.nickname}
-                </span>
-                {entry.isVerified ? (
-                  <Shield className="size-3.5 shrink-0 text-blue-500" />
-                ) : (
-                  <Users className="size-3.5 shrink-0 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span>{entry.totalScans} scans</span>
-                {entry.country && (
-                  <>
-                    <span>·</span>
-                    <span>{entry.country}</span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Tier */}
-            <div className="hidden sm:block">
-              <TierBadge tier={entry.tier} />
-            </div>
-
-            {/* Score */}
-            <div className="text-right">
-              <div className="text-base font-bold tabular-nums">
-                {entry.ecoScore}
-              </div>
-              <div className="text-xs text-muted-foreground sm:hidden">
-                <TierBadge tier={entry.tier} showLabel={false} />
-              </div>
-            </div>
-          </div>
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-14 w-full rounded-xl" />
         ))}
       </div>
+    );
+  }
 
-      {/* Footer CTA */}
-      <div className="border-t bg-muted/20 px-6 py-4 text-center">
-        <p className="mb-3 text-sm text-muted-foreground">
-          Scan a receipt to get your Eco Score and join the rankings
+  if (!entries || entries.length === 0) {
+    return (
+      <div className="rounded-2xl border bg-card p-12 text-center">
+        <Trophy className="mx-auto mb-4 size-10 text-muted-foreground/40" />
+        <p className="text-muted-foreground">
+          No rankings yet — be the first to{" "}
+          <Link href="/dashboard/scan" className="text-primary underline">
+            scan something
+          </Link>{" "}
+          and claim the top spot.
         </p>
-        <Button size="sm" asChild>
-          <Link href="/dashboard/scan" className="gap-2">
-            Start Scanning <ArrowRight className="size-3.5" />
-          </Link>
-        </Button>
       </div>
-    </div>
-  );
+    );
+  }
+
+  const items: SummaryItem[] = entries.map((entry) => ({
+    label: `${entry.totalScans} scans · ${entry.streakWeeks}w streak`,
+    value: <EntryLabel entry={entry} />,
+    content: <EntryValue entry={entry} />,
+  }));
+
+  const summaryItem: SummaryItem = {
+    label: "Total ranked players",
+    value: (
+      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+        {total} players competing
+      </span>
+    ),
+    content: (
+      <Link href="/dashboard/leaderboard">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-primary">
+          View full leaderboard <ArrowRight className="size-3.5" />
+        </Button>
+      </Link>
+    ),
+  };
+
+  return <SummaryCard items={items} summary={summaryItem} />;
 }
