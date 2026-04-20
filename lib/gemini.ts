@@ -52,6 +52,20 @@ function handleGeminiError(error: unknown): never {
     );
   }
 
+  // Service overloaded (503)
+  if (
+    msg.includes("503") ||
+    msg.includes("high demand") ||
+    msg.includes("Service Unavailable") ||
+    msg.includes("overloaded")
+  ) {
+    throw new GeminiError(
+      "The AI model is experiencing high demand. Please try again in a moment.",
+      "SERVICE_BUSY",
+      10
+    );
+  }
+
   // Invalid API key
   if (
     msg.includes("401") ||

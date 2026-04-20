@@ -150,13 +150,17 @@ export async function POST(request: NextRequest) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error(`[SCAN #${reqId}] Error:`, errMsg, error);
     if (error instanceof GeminiError) {
+      const statusMap: Record<string, number> = {
+        RATE_LIMIT: 429,
+        SERVICE_BUSY: 503,
+      };
       return NextResponse.json(
         {
           error: error.message,
           code: error.code,
           retryAfter: error.retryAfter,
         },
-        { status: error.code === "RATE_LIMIT" ? 429 : 400 }
+        { status: statusMap[error.code] ?? 400 }
       );
     }
     return NextResponse.json(

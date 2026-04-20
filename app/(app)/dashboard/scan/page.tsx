@@ -93,7 +93,10 @@ export default function ScanPage() {
 
         if (!res.ok) {
           setErrorCode(data.code || null);
-          if (data.code === "RATE_LIMIT" && data.retryAfter) {
+          if (
+            (data.code === "RATE_LIMIT" || data.code === "SERVICE_BUSY") &&
+            data.retryAfter
+          ) {
             setCooldown(data.retryAfter);
           }
           throw new Error(data.error || "Failed to analyze");
@@ -138,7 +141,10 @@ export default function ScanPage() {
 
       if (!res.ok) {
         setErrorCode(data.code || null);
-        if (data.code === "RATE_LIMIT" && data.retryAfter) {
+        if (
+          (data.code === "RATE_LIMIT" || data.code === "SERVICE_BUSY") &&
+          data.retryAfter
+        ) {
           setCooldown(data.retryAfter);
         }
         throw new Error(data.error || "Failed to analyze items");
