@@ -12,8 +12,10 @@ import {
   RotateCcw,
   Leaf,
   ArrowRight,
+  Key,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { ApiKeyDialog, useGeminiKey } from "@/components/carbon/api-key-dialog";
 
 interface DetectedItem {
   name: string;
@@ -37,11 +39,13 @@ export function LiveCamera() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const { key: geminiKey } = useGeminiKey();
 
   const [isStreaming, setIsStreaming] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<CameraResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">(
     "environment"
   );
@@ -89,18 +93,29 @@ export function LiveCamera() {
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+
+      // Scale down for faster transfer & analysis
+      const maxWidth = 640;
+      const scale = Math.min(1, maxWidth / video.videoWidth);
+      canvas.width = video.videoWidth * scale;
+      canvas.height = video.videoHeight * scale;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
-      ctx.drawImage(video, 0, 0);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.6);
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (geminiKey) {
+        headers["x-gemini-key"] = geminiKey;
+      }
 
       const response = await fetch("/api/v1/receipts/camera", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           frame: dataUrl,
           mimeType: "image/jpeg",
@@ -109,6 +124,7 @@ export function LiveCamera() {
 
       if (!response.ok) {
         const err = await response.json();
+        setErrorCode(err.code || null);
         throw new Error(err.error || "Analysis failed");
       }
 
@@ -119,7 +135,7 @@ export function LiveCamera() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [geminiKey]);
 
   const switchCamera = useCallback(() => {
     stopCamera();
@@ -145,6 +161,8 @@ export function LiveCamera() {
 
   const clearResult = () => {
     setResult(null);
+    setError(null);
+    setErrorCode(null);
   };
 
   return (
@@ -228,9 +246,40 @@ export function LiveCamera() {
 
       {/* Error */}
       {error && (
-        <Card className="border-destructive bg-destructive/5">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="p-4">
-            <p className="text-sm text-destructive">{error}</p>
+            <p className="text-sm text-destructive font-medium">{error}</p>
+            {(errorCode === "RATE_LIMIT" || errorCode === "NO_API_KEY") && (
+              <div className="mt-3 flex items-center gap-2">
+                <ApiKeyDialog>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Key className="h-3.5 w-3.5" />
+                    Add your API key
+                  </Button>
+                </ApiKeyDialog>
+                <span className="text-xs text-muted-foreground">
+                  Free at{" "}
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-foreground"
+                  >
+                    aistudio.google.com
+                  </a>
+                </span>
+              </div>
+            )}
+            {errorCode === "INVALID_KEY" && (
+              <div className="mt-3">
+                <ApiKeyDialog>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Key className="h-3.5 w-3.5" />
+                    Update your API key
+                  </Button>
+                </ApiKeyDialog>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

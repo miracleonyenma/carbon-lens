@@ -82,7 +82,7 @@ export function ReceiptUpload({
     return (
       <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-12 text-center">
         <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-        <p className="text-lg font-medium">Analyzing your receipt...</p>
+        <p className="text-lg font-medium">Analyzing your image...</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Gemini is identifying items and calculating carbon footprints
         </p>
@@ -146,10 +146,11 @@ export function ReceiptUpload({
         )}
       </div>
       <p className="text-lg font-medium">
-        {dragActive ? "Drop your receipt here" : "Upload a receipt"}
+        {dragActive ? "Drop your image here" : "Upload a photo"}
       </p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Drag & drop or click to select. JPEG, PNG, or WebP up to 10MB.
+        Receipts, products, meals — anything! Drag & drop or click. JPEG, PNG,
+        or WebP up to 10MB.
       </p>
     </label>
   );

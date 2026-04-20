@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   Leaf,
-  ScanLine,
   BarChart3,
   ArrowRight,
   Sparkles,

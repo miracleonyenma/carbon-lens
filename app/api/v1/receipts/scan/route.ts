@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
-import { analyzeImage, analyzeText } from "@/lib/gemini";
+import { analyzeImage, analyzeText, GeminiError } from "@/lib/gemini";
 import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
 
@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     const contentType = request.headers.get("content-type") || "";
+    const userApiKey = request.headers.get("x-gemini-key") || undefined;
 
     let analysisResult;
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       const bytes = await file.arrayBuffer();
       const base64 = Buffer.from(bytes).toString("base64");
 
-      analysisResult = await analyzeImage(base64, file.type);
+      analysisResult = await analyzeImage(base64, file.type, userApiKey);
     } else {
       const body = await request.json();
       const { items } = body;
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      analysisResult = await analyzeText(items);
+      analysisResult = await analyzeText(items, userApiKey);
     }
 
     await connectDB();
@@ -107,8 +108,18 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Receipt scan error:", error);
+    if (error instanceof GeminiError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+          retryAfter: error.retryAfter,
+        },
+        { status: error.code === "RATE_LIMIT" ? 429 : 400 }
+      );
+    }
     return NextResponse.json(
-      { error: "Failed to analyze receipt. Please try again." },
+      { error: "Failed to analyze. Please try again." },
       { status: 500 }
     );
   }

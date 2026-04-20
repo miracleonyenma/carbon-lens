@@ -3,12 +3,21 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowLeft, ScanLine, Type } from "lucide-react";
+import {
+  ArrowLeft,
+  ScanLine,
+  Type,
+  Camera,
+  Leaf,
+  Settings,
+  Key,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ReceiptUpload } from "@/components/carbon/receipt-upload";
 import { ScanResult } from "@/components/carbon/scan-result";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApiKeyDialog, useGeminiKey } from "@/components/carbon/api-key-dialog";
 
 interface ReceiptData {
   storeName?: string;
@@ -32,53 +41,71 @@ export default function ScanPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ReceiptData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [itemsText, setItemsText] = useState("");
+  const { key: geminiKey } = useGeminiKey();
 
-  const handleFileSelect = useCallback(async (file: File) => {
-    setIsAnalyzing(true);
-    setError(null);
-    setResult(null);
+  const handleFileSelect = useCallback(
+    async (file: File) => {
+      setIsAnalyzing(true);
+      setError(null);
+      setErrorCode(null);
+      setResult(null);
 
-    try {
-      const formData = new FormData();
-      formData.append("receipt", file);
+      try {
+        const formData = new FormData();
+        formData.append("receipt", file);
 
-      const res = await fetch("/api/v1/receipts/scan", {
-        method: "POST",
-        body: formData,
-      });
+        const headers: Record<string, string> = {};
+        if (geminiKey) headers["x-gemini-key"] = geminiKey;
 
-      const data = await res.json();
+        const res = await fetch("/api/v1/receipts/scan", {
+          method: "POST",
+          headers,
+          body: formData,
+        });
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to analyze receipt");
+        const data = await res.json();
+
+        if (!res.ok) {
+          setErrorCode(data.code || null);
+          throw new Error(data.error || "Failed to analyze");
+        }
+
+        setResult(data.receipt);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong");
+      } finally {
+        setIsAnalyzing(false);
       }
-
-      setResult(data.receipt);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, []);
+    },
+    [geminiKey]
+  );
 
   const handleTextSubmit = useCallback(async () => {
     if (!itemsText.trim()) return;
 
     setIsAnalyzing(true);
     setError(null);
+    setErrorCode(null);
     setResult(null);
 
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (geminiKey) headers["x-gemini-key"] = geminiKey;
+
       const res = await fetch("/api/v1/receipts/scan", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ items: itemsText }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
+        setErrorCode(data.code || null);
         throw new Error(data.error || "Failed to analyze items");
       }
 
@@ -88,11 +115,12 @@ export default function ScanPage() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [itemsText]);
+  }, [itemsText, geminiKey]);
 
   const handleReset = useCallback(() => {
     setResult(null);
     setError(null);
+    setErrorCode(null);
     setItemsText("");
   }, []);
 
@@ -107,11 +135,25 @@ export default function ScanPage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight">Scan Receipt</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Scan Items</h1>
+          <ApiKeyDialog>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </ApiKeyDialog>
+        </div>
         <p className="mt-1 text-muted-foreground">
-          Upload a receipt photo or type your items to see their carbon
-          footprint
+          Upload a photo of anything — receipts, products, meals — or type your
+          items to see their carbon footprint
         </p>
+        <Link
+          href="/dashboard/live"
+          className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+        >
+          <Camera className="h-4 w-4" />
+          Try Live Camera instead
+        </Link>
       </div>
 
       {result ? (
@@ -180,33 +222,34 @@ export default function ScanPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive"
+              className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-4"
             >
-              {error}
+              <p className="text-sm text-destructive font-medium">{error}</p>
+              {(errorCode === "RATE_LIMIT" || errorCode === "NO_API_KEY") && (
+                <div className="mt-3 flex items-center gap-2">
+                  <ApiKeyDialog>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Key className="h-3.5 w-3.5" />
+                      Add your API key
+                    </Button>
+                  </ApiKeyDialog>
+                  <span className="text-xs text-muted-foreground">
+                    Free at{" "}
+                    <a
+                      href="https://aistudio.google.com/apikey"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-foreground"
+                    >
+                      aistudio.google.com
+                    </a>
+                  </span>
+                </div>
+              )}
             </motion.div>
           )}
         </motion.div>
       )}
     </div>
-  );
-}
-
-function Leaf(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z" />
-      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-    </svg>
   );
 }

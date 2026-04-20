@@ -1,6 +1,63 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const DEFAULT_KEY = process.env.GEMINI_API_KEY || "";
+
+function getModel(apiKey?: string) {
+  const key = apiKey || DEFAULT_KEY;
+  if (!key) {
+    throw new GeminiError(
+      "No API key configured. Please add your Gemini API key in Settings.",
+      "NO_API_KEY"
+    );
+  }
+  const genAI = new GoogleGenerativeAI(key);
+  return genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+}
+
+export class GeminiError extends Error {
+  code: string;
+  retryAfter?: number;
+
+  constructor(message: string, code: string, retryAfter?: number) {
+    super(message);
+    this.name = "GeminiError";
+    this.code = code;
+    this.retryAfter = retryAfter;
+  }
+}
+
+function handleGeminiError(error: unknown): never {
+  if (error instanceof GeminiError) throw error;
+
+  const msg = error instanceof Error ? error.message : String(error);
+
+  // Rate limit / quota exceeded
+  if (msg.includes("429") || msg.includes("quota")) {
+    const retryMatch = msg.match(/retry in ([\d.]+)s/i);
+    const retryAfter = retryMatch
+      ? Math.ceil(parseFloat(retryMatch[1]))
+      : undefined;
+    throw new GeminiError(
+      "Gemini API rate limit reached. Please wait a moment and try again, or add your own API key in Settings.",
+      "RATE_LIMIT",
+      retryAfter
+    );
+  }
+
+  // Invalid API key
+  if (
+    msg.includes("401") ||
+    msg.includes("API_KEY_INVALID") ||
+    msg.includes("403")
+  ) {
+    throw new GeminiError(
+      "Invalid Gemini API key. Please check your key in Settings.",
+      "INVALID_KEY"
+    );
+  }
+
+  throw new GeminiError("Failed to analyze — please try again.", "UNKNOWN");
+}
 
 const CARBON_GUIDELINES = `Carbon estimation guidelines:
 - Beef: ~27 kg CO₂e per kg
@@ -84,53 +141,70 @@ ${CARBON_GUIDELINES}
 
 Be conservative. Identify what you can clearly see. Always provide swap suggestions for medium and high impact items.`;
 
-export async function analyzeImage(base64Image: string, mimeType: string) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export async function analyzeImage(
+  base64Image: string,
+  mimeType: string,
+  apiKey?: string
+) {
+  try {
+    const model = getModel(apiKey);
 
-  const result = await model.generateContent([
-    IMAGE_ANALYSIS_PROMPT,
-    {
-      inlineData: {
-        data: base64Image,
-        mimeType,
+    const result = await model.generateContent([
+      IMAGE_ANALYSIS_PROMPT,
+      {
+        inlineData: {
+          data: base64Image,
+          mimeType,
+        },
       },
-    },
-  ]);
+    ]);
 
-  const text = result.response.text();
-  return parseGeminiResponse(text);
+    const text = result.response.text();
+    return parseGeminiResponse(text);
+  } catch (error) {
+    handleGeminiError(error);
+  }
 }
 
-export async function analyzeText(itemsText: string) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export async function analyzeText(itemsText: string, apiKey?: string) {
+  try {
+    const model = getModel(apiKey);
 
-  const result = await model.generateContent([
-    TEXT_ANALYSIS_PROMPT,
-    `Here are the items:\n${itemsText}`,
-  ]);
+    const result = await model.generateContent([
+      TEXT_ANALYSIS_PROMPT,
+      `Here are the items:\n${itemsText}`,
+    ]);
 
-  const text = result.response.text();
-  return parseGeminiResponse(text);
+    const text = result.response.text();
+    return parseGeminiResponse(text);
+  } catch (error) {
+    handleGeminiError(error);
+  }
 }
 
 export async function analyzeCameraFrame(
   base64Image: string,
-  mimeType: string
+  mimeType: string,
+  apiKey?: string
 ) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  try {
+    const model = getModel(apiKey);
 
-  const result = await model.generateContent([
-    LIVE_CAMERA_PROMPT,
-    {
-      inlineData: {
-        data: base64Image,
-        mimeType,
+    const result = await model.generateContent([
+      LIVE_CAMERA_PROMPT,
+      {
+        inlineData: {
+          data: base64Image,
+          mimeType,
+        },
       },
-    },
-  ]);
+    ]);
 
-  const text = result.response.text();
-  return parseGeminiResponse(text);
+    const text = result.response.text();
+    return parseGeminiResponse(text);
+  } catch (error) {
+    handleGeminiError(error);
+  }
 }
 
 function parseGeminiResponse(text: string) {
@@ -139,11 +213,23 @@ function parseGeminiResponse(text: string) {
     .replace(/```json\n?/g, "")
     .replace(/```\n?/g, "")
     .trim();
-  const data = JSON.parse(cleaned);
+
+  let data;
+  try {
+    data = JSON.parse(cleaned);
+  } catch {
+    throw new Error(
+      `Gemini returned invalid JSON. Raw response: ${cleaned.slice(0, 200)}`
+    );
+  }
+
+  if (!data.items || !Array.isArray(data.items)) {
+    throw new Error("Gemini response missing items array");
+  }
 
   // Calculate totals
   const totalCarbonKg = data.items.reduce(
-    (sum: number, item: { carbonKg: number }) => sum + item.carbonKg,
+    (sum: number, item: { carbonKg: number }) => sum + (item.carbonKg || 0),
     0
   );
 

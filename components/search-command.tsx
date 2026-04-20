@@ -11,14 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  SearchIcon,
-  BarChart3,
-  ScanLine,
-  Clock,
-  Camera,
-  Leaf,
-} from "lucide-react";
+import { SearchIcon, BarChart3, ScanLine, Clock, Camera } from "lucide-react";
 
 interface SearchCommandProps {
   variant?: "header" | "large";

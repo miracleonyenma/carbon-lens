@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
-import { analyzeCameraFrame } from "@/lib/gemini";
+import { analyzeCameraFrame, GeminiError } from "@/lib/gemini";
+
+// Allow larger body for base64 camera frames
+export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,7 +20,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    // BYOK: check for user-provided API key
+    const userApiKey = request.headers.get("x-gemini-key") || undefined;
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body — frame may be too large" },
+        { status: 400 }
+      );
+    }
+
     const { frame, mimeType } = body;
 
     if (!frame || typeof frame !== "string") {
@@ -37,7 +52,11 @@ export async function POST(request: NextRequest) {
     // Strip data URL prefix if present
     const base64Data = frame.includes(",") ? frame.split(",")[1] : frame;
 
-    const analysisResult = await analyzeCameraFrame(base64Data, mimeType);
+    const analysisResult = await analyzeCameraFrame(
+      base64Data,
+      mimeType,
+      userApiKey
+    );
 
     return NextResponse.json({
       success: true,
@@ -50,9 +69,18 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Camera analysis error:", error);
-    return NextResponse.json(
-      { error: "Failed to analyze camera frame" },
-      { status: 500 }
-    );
+    if (error instanceof GeminiError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+          retryAfter: error.retryAfter,
+        },
+        { status: error.code === "RATE_LIMIT" ? 429 : 400 }
+      );
+    }
+    const message =
+      error instanceof Error ? error.message : "Failed to analyze camera frame";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
