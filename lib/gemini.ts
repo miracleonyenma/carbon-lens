@@ -24,6 +24,12 @@ function isServiceBusy(error: unknown): boolean {
   );
 }
 
+function isRateLimitError(error: unknown): boolean {
+  if (error instanceof GeminiError && error.code === "RATE_LIMIT") return true;
+  const msg = error instanceof Error ? error.message : String(error);
+  return msg.includes("429") || msg.includes("quota");
+}
+
 function getModel(apiKey?: string) {
   const key = apiKey || DEFAULT_KEY;
   if (!key) {
@@ -367,7 +373,7 @@ export async function analyzeImage(
     const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
-    if (isServiceBusy(error)) {
+    if (isServiceBusy(error) || (!apiKey && isRateLimitError(error))) {
       const fallback = await tryGroqImageAnalysis(
         base64Image,
         mimeType,
@@ -395,7 +401,7 @@ export async function analyzeText(
     const text = extractText(result, "items");
     return parseGeminiResponse(text);
   } catch (error) {
-    if (isServiceBusy(error)) {
+    if (isServiceBusy(error) || (!apiKey && isRateLimitError(error))) {
       const fallback = await tryGroqTextAnalysis(itemsText, climateContext);
       if (fallback) return fallback;
     }
@@ -425,7 +431,7 @@ export async function analyzeCameraFrame(
     const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
-    if (isServiceBusy(error)) {
+    if (isServiceBusy(error) || (!apiKey && isRateLimitError(error))) {
       const fallback = await tryGroqCameraAnalysis(
         base64Image,
         mimeType,

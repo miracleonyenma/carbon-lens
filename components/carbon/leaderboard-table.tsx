@@ -39,6 +39,14 @@ interface LeaderboardTableProps {
   hasMore?: boolean;
 }
 
+function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .replace(/./g, (char) =>
+      String.fromCodePoint(char.codePointAt(0)! - 65 + 0x1f1e6)
+    );
+}
+
 function RankIcon({ rank }: { rank: number }) {
   if (rank === 1) return <Trophy className="h-5 w-5 text-yellow-500" />;
   if (rank === 2) return <Medal className="h-5 w-5 text-gray-400" />;
@@ -100,7 +108,9 @@ function EntryRow({
           {entry.country && (
             <>
               <span>·</span>
-              <span>{entry.country}</span>
+              <span title={entry.country}>
+                {countryCodeToFlag(entry.country)}
+              </span>
             </>
           )}
         </div>
