@@ -25,6 +25,14 @@ interface PreviewEntry {
 
 const medals = ["🥇", "🥈", "🥉"];
 
+function countryCodeToFlag(code: string): string {
+  return code
+    .toUpperCase()
+    .replace(/./g, (char) =>
+      String.fromCodePoint(char.codePointAt(0)! - 65 + 0x1f1e6)
+    );
+}
+
 function EntryLabel({ entry }: { entry: PreviewEntry }) {
   return (
     <div className="flex items-center gap-2">
@@ -40,7 +48,7 @@ function EntryLabel({ entry }: { entry: PreviewEntry }) {
         <Users className="size-3.5 shrink-0 text-muted-foreground" />
       )}
       {entry.country && (
-        <span className="text-xs text-muted-foreground">{entry.country}</span>
+        <span title={entry.country}>{countryCodeToFlag(entry.country)}</span>
       )}
     </div>
   );
