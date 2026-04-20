@@ -10,12 +10,18 @@ export async function GET(request: NextRequest) {
     const token = cookieStore.get("auth-token")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({
+        receipts: [],
+        pagination: { page: 1, limit: 10, total: 0, pages: 0 },
+      });
     }
 
     const session = await decryptSession(token);
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({
+        receipts: [],
+        pagination: { page: 1, limit: 10, total: 0, pages: 0 },
+      });
     }
 
     const { searchParams } = new URL(request.url);

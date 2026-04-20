@@ -19,13 +19,9 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth-token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await decryptSession(token);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let session: { userId: string } | null = null;
+    if (token) {
+      session = await decryptSession(token);
     }
 
     const contentType = request.headers.get("content-type") || "";
@@ -34,7 +30,9 @@ export async function POST(request: NextRequest) {
 
     const [climate, user, geo] = await Promise.all([
       getClimateContext(),
-      User.findById(session.userId).select("geo").lean(),
+      session
+        ? User.findById(session.userId).select("geo").lean()
+        : Promise.resolve(null),
       detectGeoFromRequest(),
     ]);
 
@@ -116,22 +114,36 @@ export async function POST(request: NextRequest) {
 
       analysisResult = await analyzeText(items, userApiKey, promptContext);
     }
-    const receipt = await Receipt.create({
-      userId: session.userId,
-      ...analysisResult,
-    });
+    // Only persist to DB if authenticated
+    if (session) {
+      const receipt = await Receipt.create({
+        userId: session.userId,
+        ...analysisResult,
+      });
 
+      return NextResponse.json({
+        success: true,
+        receipt: {
+          id: receipt._id,
+          storeName: receipt.storeName,
+          receiptDate: receipt.receiptDate,
+          items: receipt.items,
+          totalCarbonKg: receipt.totalCarbonKg,
+          totalItems: receipt.totalItems,
+          insights: receipt.insights,
+          createdAt: receipt.createdAt,
+        },
+      });
+    }
+
+    // Anonymous — return analysis without saving
     return NextResponse.json({
       success: true,
+      anonymous: true,
       receipt: {
-        id: receipt._id,
-        storeName: receipt.storeName,
-        receiptDate: receipt.receiptDate,
-        items: receipt.items,
-        totalCarbonKg: receipt.totalCarbonKg,
-        totalItems: receipt.totalItems,
-        insights: receipt.insights,
-        createdAt: receipt.createdAt,
+        id: null,
+        ...analysisResult,
+        createdAt: new Date().toISOString(),
       },
     });
   } catch (error) {

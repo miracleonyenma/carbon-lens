@@ -23,13 +23,9 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth-token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const session = await decryptSession(token);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let session: { userId: string } | null = null;
+    if (token) {
+      session = await decryptSession(token);
     }
 
     // BYOK: check for user-provided API key
@@ -38,7 +34,9 @@ export async function POST(request: NextRequest) {
 
     const [climate, user, geo] = await Promise.all([
       getClimateContext(),
-      User.findById(session.userId).select("geo").lean(),
+      session
+        ? User.findById(session.userId).select("geo").lean()
+        : Promise.resolve(null),
       detectGeoFromRequest(),
     ]);
 

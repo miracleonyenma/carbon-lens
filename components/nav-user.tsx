@@ -32,9 +32,11 @@ import {
   LogOutIcon,
   GiftIcon,
   CopyIcon,
+  LogInIcon,
 } from "lucide-react";
 import { Calligraph } from "calligraph";
 import { Button } from "./ui/button";
+import Link from "next/link";
 import useShare from "@/hooks/aevr/use-share";
 
 interface NavUserProps {
@@ -68,10 +70,37 @@ export function NavUser({ variant = "sidebar", className }: NavUserProps) {
     );
   }
 
-  // Fallback if no user - usually this component should be protected or hidden
-  // but for safety we show a placeholder or nothing
+  // Show sign-in button for anonymous users
   if (!user) {
-    return null;
+    if (variant === "header") {
+      return (
+        <Link href="/login">
+          <Button variant="outline" size="sm" className="gap-2">
+            <LogInIcon className="h-4 w-4" />
+            Sign in
+          </Button>
+        </Link>
+      );
+    }
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <Link href="/login">
+            <SidebarMenuButton size="lg" className="rounded-full">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                <LogInIcon className="h-4 w-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="font-semibold">Sign in</span>
+                <span className="text-xs text-muted-foreground">
+                  Sync your data
+                </span>
+              </div>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
   }
 
   // Use name/email from real user data. Avatar falls back to initials
@@ -98,8 +127,8 @@ export function NavUser({ variant = "sidebar", className }: NavUserProps) {
         variant === "sidebar" && isMobile
           ? "bottom"
           : variant === "sidebar"
-            ? "right"
-            : "bottom"
+          ? "right"
+          : "bottom"
       }
       align="end"
       sideOffset={4}
@@ -191,7 +220,9 @@ export function NavUser({ variant = "sidebar", className }: NavUserProps) {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
-                className={`data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-12! ${className || ""}`}
+                className={`data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-full group-data-[collapsible=icon]:h-12! group-data-[collapsible=icon]:w-12! ${
+                  className || ""
+                }`}
               >
                 <Avatar className="h-8 w-8 rounded-full group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11">
                   <AvatarImage src={avatarSrc} alt={displayName} />

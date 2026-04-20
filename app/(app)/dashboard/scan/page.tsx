@@ -18,6 +18,7 @@ import { ReceiptUpload } from "@/components/carbon/receipt-upload";
 import { ScanResult } from "@/components/carbon/scan-result";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ApiKeyDialog, useGeminiKey } from "@/components/carbon/api-key-dialog";
+import { useLocalReceipts } from "@/hooks/use-local-receipts";
 
 interface ReceiptData {
   storeName?: string;
@@ -46,6 +47,7 @@ export default function ScanPage() {
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { key: geminiKey } = useGeminiKey();
+  const { addReceipt } = useLocalReceipts();
 
   // Cooldown timer tick
   useEffect(() => {
@@ -98,13 +100,18 @@ export default function ScanPage() {
         }
 
         setResult(data.receipt);
+
+        // Save locally if this was an anonymous scan
+        if (data.anonymous) {
+          addReceipt(data.receipt);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setIsAnalyzing(false);
       }
     },
-    [geminiKey]
+    [geminiKey, addReceipt]
   );
 
   const handleTextSubmit = useCallback(async () => {
@@ -138,12 +145,17 @@ export default function ScanPage() {
       }
 
       setResult(data.receipt);
+
+      // Save locally if this was an anonymous scan
+      if (data.anonymous) {
+        addReceipt(data.receipt);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsAnalyzing(false);
     }
-  }, [itemsText, geminiKey]);
+  }, [itemsText, geminiKey, addReceipt]);
 
   const handleReset = useCallback(() => {
     setResult(null);

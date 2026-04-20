@@ -157,7 +157,7 @@ export default function Home() {
               <Link href="/login">Log in</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/register">Get Started</Link>
+              <Link href="/dashboard">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row">
             <Button size="lg" className="text-base" asChild>
-              <Link href="/register">
+              <Link href="/dashboard">
                 Start Scanning Free <ArrowRight className="ml-2 size-4" />
               </Link>
             </Button>
@@ -280,17 +280,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Leaf className="h-4 w-4 text-primary" />
-            Carbon Lens
-          </div>
-          <p>Built for Earth Day 2026 🌍</p>
-        </div>
-      </footer>
     </main>
   );
 }

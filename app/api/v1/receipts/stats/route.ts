@@ -5,18 +5,30 @@ import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
 import mongoose from "mongoose";
 
+const emptyStats = {
+  overview: {
+    totalScans: 0,
+    totalCarbonKg: 0,
+    totalItems: 0,
+    avgCarbonPerReceipt: 0,
+  },
+  monthlyTrend: [],
+  categoryBreakdown: [],
+  impactDistribution: [],
+};
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("auth-token")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(emptyStats);
     }
 
     const session = await decryptSession(token);
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(emptyStats);
     }
 
     await connectDB();
