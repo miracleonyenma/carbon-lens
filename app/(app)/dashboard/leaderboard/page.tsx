@@ -13,12 +13,15 @@ import {
   TierBadge,
 } from "@/components/carbon/leaderboard-badges";
 import { SubmitScoreDialog } from "@/components/carbon/submit-score-dialog";
+import { useAuth } from "@/components/providers/auth-provider";
 import { TIER_CONFIG } from "@/lib/eco-score";
 import type { EcoTier } from "@/lib/eco-score";
 
 const PAGE_SIZE = 25;
 
 export default function LeaderboardPage() {
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [entries, setEntries] = useState<LeaderboardEntryData[]>([]);
   const [total, setTotal] = useState(0);
   const [myEntry, setMyEntry] = useState<
@@ -72,10 +75,15 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p className="mt-1 text-muted-foreground">
-            See how your eco footprint compares to the community
+            {isAuthenticated && myEntry
+              ? "Your score updates automatically with each scan"
+              : "See how your eco footprint compares to the community"}
           </p>
         </div>
-        <SubmitScoreDialog onSubmitted={handleSubmitted} />
+        <SubmitScoreDialog
+          onSubmitted={handleSubmitted}
+          existingNickname={myEntry?.nickname}
+        />
       </div>
 
       {/* My rank card */}

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
+import { refreshLeaderboardEntry } from "@/lib/leaderboard";
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,6 +62,11 @@ export async function POST(request: NextRequest) {
     );
 
     await Receipt.insertMany(docs);
+
+    // Auto-update leaderboard entry (non-blocking)
+    refreshLeaderboardEntry(session.userId).catch((err) =>
+      console.error("[SYNC] Leaderboard update failed:", err)
+    );
 
     const syncedLocalIds = receipts.map((r: { localId: string }) => r.localId);
 

@@ -7,6 +7,7 @@ import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
 import { User } from "@/lib/models/User";
 import { detectGeoFromRequest } from "@/utils/geoip";
+import { refreshLeaderboardEntry } from "@/lib/leaderboard";
 
 let scanRequestCount = 0;
 
@@ -120,6 +121,11 @@ export async function POST(request: NextRequest) {
         userId: session.userId,
         ...analysisResult,
       });
+
+      // Auto-update leaderboard entry (non-blocking)
+      refreshLeaderboardEntry(session.userId).catch((err) =>
+        console.error("[SCAN] Leaderboard update failed:", err)
+      );
 
       return NextResponse.json({
         success: true,

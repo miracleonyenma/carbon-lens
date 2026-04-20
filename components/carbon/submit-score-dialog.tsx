@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,36 +13,46 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EcoScoreRing, TierBadge } from "./leaderboard-badges";
 import { useAuth } from "@/components/providers/auth-provider";
-import {
-  useLocalReceipts,
-  type LocalReceipt,
-} from "@/hooks/use-local-receipts";
+import { useLocalReceipts } from "@/hooks/use-local-receipts";
 import { computeEcoScore, TIER_CONFIG } from "@/lib/eco-score";
-import { Loader2, Trophy } from "lucide-react";
+import { Loader2, Trophy, Pencil } from "lucide-react";
 
 interface SubmitScoreDialogProps {
   onSubmitted?: () => void;
   children?: React.ReactNode;
+  /** If set, the user already has a leaderboard entry — show "edit" mode */
+  existingNickname?: string;
 }
 
 export function SubmitScoreDialog({
   onSubmitted,
   children,
+  existingNickname,
 }: SubmitScoreDialogProps) {
   const { user } = useAuth();
   const { receipts: localReceipts } = useLocalReceipts();
   const isAuthenticated = !!user;
+  const isEditing = !!existingNickname;
 
   const [open, setOpen] = useState(false);
-  const [nickname, setNickname] = useState(
-    user?.firstName
-      ? `${user.firstName}${
-          user.lastName ? ` ${user.lastName.charAt(0)}.` : ""
-        }`
-      : ""
-  );
+  const [nickname, setNickname] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync nickname from props/user when dialog opens
+  useEffect(() => {
+    if (open) {
+      setNickname(
+        existingNickname ||
+          (user?.firstName
+            ? `${user.firstName}${
+                user.lastName ? ` ${user.lastName.charAt(0)}.` : ""
+              }`
+            : "")
+      );
+      setError(null);
+    }
+  }, [open, existingNickname, user?.firstName, user?.lastName]);
 
   // Compute preview score from local receipts
   const previewScore = computeEcoScore({
@@ -56,7 +66,7 @@ export function SubmitScoreDialog({
     const trimmed = nickname.trim();
 
     if (!trimmed) {
-      setError("Please enter a nickname");
+      setError("Please enter a display name");
       return;
     }
 
@@ -103,35 +113,42 @@ export function SubmitScoreDialog({
 
   const hasData = isAuthenticated || localReceipts.length > 0;
 
+  const triggerButton = children || (
+    <Button variant={isEditing ? "outline" : "default"} className="gap-2">
+      {isEditing ? (
+        <>
+          <Pencil className="h-4 w-4" />
+          Edit Display Name
+        </>
+      ) : (
+        <>
+          <Trophy className="h-4 w-4" />
+          Submit Score
+        </>
+      )}
+    </Button>
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button className="gap-2">
-            <Trophy className="h-4 w-4" />
-            Join Leaderboard
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Join the Leaderboard</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Update Display Name" : "Join the Leaderboard"}
+          </DialogTitle>
         </DialogHeader>
 
         {!hasData ? (
           <div className="py-6 text-center text-sm text-muted-foreground">
-            Scan at least one receipt before joining the leaderboard.
+            Scan at least one receipt to join the leaderboard.
           </div>
         ) : (
           <div className="space-y-6 py-2">
             {/* Score preview */}
             <div className="flex items-center gap-6">
               <EcoScoreRing
-                score={
-                  isAuthenticated
-                    ? previewScore.ecoScore
-                    : previewScore.ecoScore
-                }
+                score={previewScore.ecoScore}
                 tier={previewScore.tier}
               />
               <div className="space-y-1">
@@ -143,7 +160,7 @@ export function SubmitScoreDialog({
                 </p>
                 {isAuthenticated && (
                   <p className="text-xs text-muted-foreground">
-                    Score will be computed from your server data
+                    Score updates automatically with each scan
                   </p>
                 )}
               </div>
@@ -175,7 +192,11 @@ export function SubmitScoreDialog({
               className="w-full gap-2"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {submitting ? "Submitting..." : "Submit Score"}
+              {submitting
+                ? "Saving..."
+                : isEditing
+                ? "Update Name"
+                : "Submit Score"}
             </Button>
           </div>
         )}

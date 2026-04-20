@@ -3,10 +3,9 @@ import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import LeaderboardEntry from "@/lib/models/LeaderboardEntry";
-import Receipt from "@/lib/models/Receipt";
-import { User } from "@/lib/models/User";
 import mongoose from "mongoose";
-import { computeEcoScore, validateCommunitySubmission } from "@/lib/eco-score";
+import { validateCommunitySubmission, getTier } from "@/lib/eco-score";
+import { refreshLeaderboardEntry } from "@/lib/leaderboard";
 
 /**
  * GET /api/v1/leaderboard — public leaderboard
@@ -73,9 +72,10 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/v1/leaderboard — submit / update your leaderboard entry
+ * POST /api/v1/leaderboard — update nickname or submit community score
  *
- * Authenticated users: score is computed server-side from their receipts.
+ * Authenticated users: entry is auto-created on first scan. This endpoint
+ *   lets them update their nickname and triggers a score refresh.
  *   Body: { nickname: string }
  *
  * Unauthenticated users: submit client-computed score (validated for plausibility).
@@ -116,46 +116,24 @@ export async function POST(request: NextRequest) {
     }
 
     if (session) {
-      // ---- AUTHENTICATED: compute score server-side ----
-      const userId = new mongoose.Types.ObjectId(session.userId);
+      // ---- AUTHENTICATED: update nickname + refresh score ----
 
-      // Gather all items from all receipts
-      const receipts = await Receipt.find({ userId })
-        .select("items createdAt")
-        .lean();
+      // Refresh the score from receipts
+      const entry = await refreshLeaderboardEntry(session.userId);
 
-      const allItems = receipts.flatMap((r) => r.items);
-      const scanDates = receipts.map((r) =>
-        new Date(r.createdAt).toISOString()
-      );
-
-      const result = computeEcoScore({
-        items: allItems,
-        totalScans: receipts.length,
-        scanDates,
-      });
-
-      const user = await User.findById(userId).select("geo").lean();
-
-      const entry = await LeaderboardEntry.findOneAndUpdate(
-        { userId },
-        {
-          $set: {
-            nickname,
-            ecoScore: result.ecoScore,
-            totalScans: receipts.length,
-            totalItems: result.totalItems,
-            lowImpactRatio: result.lowImpactRatio,
-            avgCarbonPerItem: result.avgCarbonPerItem,
-            streakWeeks: result.streakWeeks,
-            tier: result.tier,
-            isVerified: true,
-            country: user?.geo?.country,
-            lastUpdated: new Date(),
+      if (!entry) {
+        return NextResponse.json(
+          {
+            error:
+              "No scans yet — scan a receipt first to join the leaderboard",
           },
-        },
-        { upsert: true, new: true }
-      );
+          { status: 400 }
+        );
+      }
+
+      // Update the nickname
+      entry.nickname = nickname;
+      await entry.save();
 
       const rank =
         (await LeaderboardEntry.countDocuments({
@@ -218,7 +196,7 @@ export async function POST(request: NextRequest) {
         existing.lowImpactRatio = lowImpactRatio;
         existing.avgCarbonPerItem = avgCarbonPerItem;
         existing.streakWeeks = streakWeeks || 0;
-        existing.tier = (await import("@/lib/eco-score")).getTier(ecoScore);
+        existing.tier = getTier(ecoScore);
         existing.lastUpdated = new Date();
         await existing.save();
 
@@ -231,8 +209,6 @@ export async function POST(request: NextRequest) {
           entry: { ...existing.toObject(), rank },
         });
       }
-
-      const { getTier } = await import("@/lib/eco-score");
 
       const entry = await LeaderboardEntry.create({
         nickname,
