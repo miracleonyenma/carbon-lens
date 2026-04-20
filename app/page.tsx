@@ -41,9 +41,9 @@ export default function Home() {
               <span className="text-primary">every purchase</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
-              Upload your grocery receipts and instantly see the carbon footprint
-              of each item. Get smarter swaps, track trends, and make your
-              shopping more sustainable.
+              Upload your grocery receipts and instantly see the carbon
+              footprint of each item. Get smarter swaps, track trends, and make
+              your shopping more sustainable.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
@@ -99,7 +99,8 @@ export default function Home() {
               Every item, color-coded
             </h2>
             <p className="mx-auto mb-12 max-w-xl text-muted-foreground">
-              Instantly see which items have the biggest impact on your footprint
+              Instantly see which items have the biggest impact on your
+              footprint
             </p>
             <div className="mx-auto grid max-w-2xl gap-3">
               <DemoItem

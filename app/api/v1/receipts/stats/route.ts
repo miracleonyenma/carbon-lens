@@ -89,14 +89,25 @@ export async function GET() {
     ]);
 
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     return NextResponse.json({
       overview: {
         totalScans: overallStats?.totalScans || 0,
-        totalCarbonKg: Math.round((overallStats?.totalCarbonKg || 0) * 100) / 100,
+        totalCarbonKg:
+          Math.round((overallStats?.totalCarbonKg || 0) * 100) / 100,
         totalItems: overallStats?.totalItems || 0,
         avgCarbonPerReceipt:
           Math.round((overallStats?.avgCarbonPerReceipt || 0) * 100) / 100,
@@ -121,7 +132,7 @@ export async function GET() {
     console.error("Stats error:", error);
     return NextResponse.json(
       { error: "Failed to fetch stats" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

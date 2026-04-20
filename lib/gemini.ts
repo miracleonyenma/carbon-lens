@@ -76,7 +76,10 @@ Return a JSON object with this exact structure (no markdown, no code fences, jus
 
 Use the same carbon estimation guidelines as for receipt images. Impact levels: low (<2 kg), medium (2-5 kg), high (>5 kg).`;
 
-export async function analyzeReceiptImage(base64Image: string, mimeType: string) {
+export async function analyzeReceiptImage(
+  base64Image: string,
+  mimeType: string
+) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
   const result = await model.generateContent([
@@ -107,13 +110,16 @@ export async function analyzeReceiptText(itemsText: string) {
 
 function parseGeminiResponse(text: string) {
   // Strip markdown code fences if present
-  const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const cleaned = text
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
   const data = JSON.parse(cleaned);
 
   // Calculate totals
   const totalCarbonKg = data.items.reduce(
     (sum: number, item: { carbonKg: number }) => sum + item.carbonKg,
-    0,
+    0
   );
 
   return {

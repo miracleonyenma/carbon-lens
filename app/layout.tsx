@@ -20,7 +20,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Carbon Lens",
-  description: "See the carbon cost of every purchase. AI-powered receipt scanning for a sustainable future.",
+  description:
+    "See the carbon cost of every purchase. AI-powered receipt scanning for a sustainable future.",
 };
 
 export default function RootLayout({

@@ -10,14 +10,22 @@ interface ReceiptUploadProps {
   isAnalyzing: boolean;
 }
 
-export function ReceiptUpload({ onFileSelect, isAnalyzing }: ReceiptUploadProps) {
+export function ReceiptUpload({
+  onFileSelect,
+  isAnalyzing,
+}: ReceiptUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
 
   const handleFile = useCallback(
     (file: File) => {
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+      ];
       if (!allowedTypes.includes(file.type)) {
         return;
       }
@@ -31,7 +39,7 @@ export function ReceiptUpload({ onFileSelect, isAnalyzing }: ReceiptUploadProps)
       reader.readAsDataURL(file);
       onFileSelect(file);
     },
-    [onFileSelect],
+    [onFileSelect]
   );
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -53,7 +61,7 @@ export function ReceiptUpload({ onFileSelect, isAnalyzing }: ReceiptUploadProps)
         handleFile(e.dataTransfer.files[0]);
       }
     },
-    [handleFile],
+    [handleFile]
   );
 
   const handleChange = useCallback(
@@ -62,7 +70,7 @@ export function ReceiptUpload({ onFileSelect, isAnalyzing }: ReceiptUploadProps)
         handleFile(e.target.files[0]);
       }
     },
-    [handleFile],
+    [handleFile]
   );
 
   const clearPreview = useCallback(() => {
@@ -117,7 +125,7 @@ export function ReceiptUpload({ onFileSelect, isAnalyzing }: ReceiptUploadProps)
         "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 text-center transition-colors",
         dragActive
           ? "border-primary bg-primary/10"
-          : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+          : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
       )}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}

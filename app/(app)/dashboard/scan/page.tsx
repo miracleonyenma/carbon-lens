@@ -109,7 +109,8 @@ export default function ScanPage() {
         </Link>
         <h1 className="text-3xl font-bold tracking-tight">Scan Receipt</h1>
         <p className="mt-1 text-muted-foreground">
-          Upload a receipt photo or type your items to see their carbon footprint
+          Upload a receipt photo or type your items to see their carbon
+          footprint
         </p>
       </div>
 

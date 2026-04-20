@@ -35,7 +35,7 @@ export function ScanResult({
   const highImpactCount = items.filter((i) => i.impactLevel === "high").length;
   const totalSwapSavings = items.reduce(
     (sum, i) => sum + (i.swapSavingsKg || 0),
-    0,
+    0
   );
 
   return (
@@ -57,13 +57,15 @@ export function ScanResult({
             </h3>
             <p className="text-sm text-muted-foreground">
               from {totalItems} items
-              {receiptDate && ` • ${new Date(receiptDate).toLocaleDateString()}`}
+              {receiptDate &&
+                ` • ${new Date(receiptDate).toLocaleDateString()}`}
             </p>
           </div>
           <div className="flex gap-2 text-sm">
             {highImpactCount > 0 && (
               <span className="rounded-lg bg-red-100 px-3 py-1.5 font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                {highImpactCount} high-impact {highImpactCount === 1 ? "item" : "items"}
+                {highImpactCount} high-impact{" "}
+                {highImpactCount === 1 ? "item" : "items"}
               </span>
             )}
             {totalSwapSavings > 0 && (

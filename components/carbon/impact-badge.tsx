@@ -9,12 +9,14 @@ const config = {
   low: {
     label: "Low",
     emoji: "🟢",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+    className:
+      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   },
   medium: {
     label: "Medium",
     emoji: "🟡",
-    className: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+    className:
+      "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
   },
   high: {
     label: "High",
@@ -31,7 +33,7 @@ export function ImpactBadge({ level, className }: ImpactBadgeProps) {
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
         badgeClass,
-        className,
+        className
       )}
     >
       {emoji} {label}

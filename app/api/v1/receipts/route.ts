@@ -20,7 +20,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(searchParams.get("limit") || "10", 10))
+    );
     const skip = (page - 1) * limit;
 
     await connectDB();
@@ -56,7 +59,7 @@ export async function GET(request: NextRequest) {
     console.error("Receipt list error:", error);
     return NextResponse.json(
       { error: "Failed to fetch receipts" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

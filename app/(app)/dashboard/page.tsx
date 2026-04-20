@@ -12,7 +12,10 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CarbonTrendChart, CategoryBreakdownChart } from "@/components/carbon/carbon-chart";
+import {
+  CarbonTrendChart,
+  CategoryBreakdownChart,
+} from "@/components/carbon/carbon-chart";
 import { ImpactBadge } from "@/components/carbon/impact-badge";
 
 interface Stats {
@@ -23,7 +26,11 @@ interface Stats {
     avgCarbonPerReceipt: number;
   };
   monthlyTrend: { month: string; totalCarbonKg: number; scans: number }[];
-  categoryBreakdown: { category: string; totalCarbonKg: number; itemCount: number }[];
+  categoryBreakdown: {
+    category: string;
+    totalCarbonKg: number;
+    itemCount: number;
+  }[];
   impactDistribution: { level: string; count: number; totalCarbonKg: number }[];
 }
 
@@ -191,7 +198,7 @@ export default function DashboardPage() {
             <div className="divide-y">
               {recentReceipts.map((receipt) => {
                 const highCount = receipt.items.filter(
-                  (i) => i.impactLevel === "high",
+                  (i) => i.impactLevel === "high"
                 ).length;
                 return (
                   <Link
@@ -209,9 +216,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      {highCount > 0 && (
-                        <ImpactBadge level="high" />
-                      )}
+                      {highCount > 0 && <ImpactBadge level="high" />}
                       <span className="font-semibold">
                         {receipt.totalCarbonKg.toFixed(1)} kg
                       </span>

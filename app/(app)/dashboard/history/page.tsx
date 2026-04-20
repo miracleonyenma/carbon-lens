@@ -82,7 +82,10 @@ export default function HistoryPage() {
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed py-20 text-center">
           <p className="text-lg font-medium">No scans yet</p>
           <p className="mt-1 text-muted-foreground">
-            <Link href="/dashboard/scan" className="text-primary hover:underline">
+            <Link
+              href="/dashboard/scan"
+              className="text-primary hover:underline"
+            >
               Scan your first receipt
             </Link>{" "}
             to start tracking.
@@ -93,10 +96,10 @@ export default function HistoryPage() {
           {receipts.map((receipt, index) => {
             const isExpanded = expandedId === receipt.id;
             const highCount = receipt.items.filter(
-              (i) => i.impactLevel === "high",
+              (i) => i.impactLevel === "high"
             ).length;
             const medCount = receipt.items.filter(
-              (i) => i.impactLevel === "medium",
+              (i) => i.impactLevel === "medium"
             ).length;
 
             return (
@@ -108,9 +111,7 @@ export default function HistoryPage() {
                 className="rounded-xl border bg-card"
               >
                 <button
-                  onClick={() =>
-                    setExpandedId(isExpanded ? null : receipt.id)
-                  }
+                  onClick={() => setExpandedId(isExpanded ? null : receipt.id)}
                   className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-muted/50"
                 >
                   <div>

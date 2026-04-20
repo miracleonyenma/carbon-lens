@@ -74,7 +74,9 @@ export function CarbonTrendChart({ data }: { data: MonthlyData[] }) {
           {data.map((_, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={`oklch(0.696 0.17 162.48 / ${0.5 + (index / data.length) * 0.5})`}
+              fill={`oklch(0.696 0.17 162.48 / ${
+                0.5 + (index / data.length) * 0.5
+              })`}
             />
           ))}
         </Bar>

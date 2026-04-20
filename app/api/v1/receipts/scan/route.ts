@@ -30,16 +30,24 @@ export async function POST(request: NextRequest) {
       if (!file) {
         return NextResponse.json(
           { error: "No receipt file provided" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
       // Validate file type
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+      ];
       if (!allowedTypes.includes(file.type)) {
         return NextResponse.json(
-          { error: "Invalid file type. Please upload a JPEG, PNG, or WebP image." },
-          { status: 400 },
+          {
+            error:
+              "Invalid file type. Please upload a JPEG, PNG, or WebP image.",
+          },
+          { status: 400 }
         );
       }
 
@@ -47,7 +55,7 @@ export async function POST(request: NextRequest) {
       if (file.size > 10 * 1024 * 1024) {
         return NextResponse.json(
           { error: "File too large. Maximum size is 10MB." },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
@@ -62,7 +70,7 @@ export async function POST(request: NextRequest) {
       if (!items || typeof items !== "string" || items.trim().length === 0) {
         return NextResponse.json(
           { error: "Please provide a list of items" },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
@@ -70,7 +78,7 @@ export async function POST(request: NextRequest) {
       if (items.length > 5000) {
         return NextResponse.json(
           { error: "Input too long. Maximum 5000 characters." },
-          { status: 400 },
+          { status: 400 }
         );
       }
 
@@ -101,7 +109,7 @@ export async function POST(request: NextRequest) {
     console.error("Receipt scan error:", error);
     return NextResponse.json(
       { error: "Failed to analyze receipt. Please try again." },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

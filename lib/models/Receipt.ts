@@ -38,7 +38,7 @@ const ReceiptItemSchema = new Schema<IReceiptItem>(
     suggestedSwap: { type: String },
     swapSavingsKg: { type: Number },
   },
-  { _id: false },
+  { _id: false }
 );
 
 const ReceiptSchema = new Schema<IReceipt>(
@@ -56,7 +56,7 @@ const ReceiptSchema = new Schema<IReceipt>(
     totalItems: { type: Number, required: true },
     insights: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 export default mongoose.models.Receipt ||
