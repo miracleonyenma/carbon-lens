@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Plus,
   LogIn,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -155,6 +156,12 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/dashboard/leaderboard">
+            <Button variant="outline" className="gap-2">
+              <Trophy className="h-4 w-4" />
+              Leaderboard
+            </Button>
+          </Link>
           {!isAuthenticated && (
             <Link href="/login">
               <Button variant="outline" className="gap-2">

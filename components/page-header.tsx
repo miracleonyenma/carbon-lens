@@ -139,6 +139,11 @@ const SEGMENTS: Record<string, SegmentConfig> = {
     shortLabel: "Catch Up",
     icon: NewspaperIcon,
   },
+  leaderboard: {
+    label: "Leaderboard",
+    shortLabel: "Board",
+    icon: UsersIcon,
+  },
 };
 
 function fallbackConfig(seg: string): SegmentConfig {

@@ -13,7 +13,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { HomeIcon, PaintBucketIcon } from "lucide-react";
+import { HomeIcon, PaintBucketIcon, TrophyIcon } from "lucide-react";
 
 // This is sample data.
 export const data = {
@@ -33,6 +33,15 @@ export const data = {
       activeIconColor: "text-blue-100 dark:text-blue-100",
       bgColor: "bg-blue-100 dark:bg-blue-900/40",
       activeBgColor: "bg-blue-600! dark:bg-blue-900/40",
+    },
+    {
+      title: "Leaderboard",
+      url: "/dashboard/leaderboard",
+      icon: <TrophyIcon strokeWidth={2} />,
+      iconColor: "text-yellow-600 dark:text-yellow-400",
+      activeIconColor: "text-yellow-100 dark:text-yellow-100",
+      bgColor: "bg-yellow-100 dark:bg-yellow-900/40",
+      activeBgColor: "bg-yellow-600! dark:bg-yellow-900/40",
     },
   ],
   projects: [],
