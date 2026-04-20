@@ -19,6 +19,7 @@
 | **Climate Context** | Live atmospheric CO₂ plus global climate signals like warming, renewables growth, forest loss, ice loss, species threat, and plastic production. Shows the regional context Gemini is using when available. |
 | **Scan History** | Paginated history with expandable item details, swap suggestions, and AI insights. |
 | **BYOK** | Bring Your Own Gemini API Key — stored in localStorage, sent directly to Google via `x-gemini-key` header. |
+| **Leaderboard** | Global eco-score ranking with tier badges (🌱 Seedling → 🌍 Guardian). Auth'd users auto-join on first scan; unauth'd users can submit community scores. |
 | **Dark Mode** | Full light/dark theme support via `next-themes`. |
 
 ## Tech Stack
@@ -84,6 +85,7 @@ app/
 │       ├── page.tsx                   # Dashboard (stats, charts)
 │       ├── scan/page.tsx              # Photo upload + text input scanning
 │       ├── live/page.tsx              # Live camera analysis
+│       ├── leaderboard/page.tsx        # Eco-score leaderboard
 │       └── history/page.tsx           # Paginated scan history
 ├── api/v1/
 │   ├── auth/                         # Login, register, logout, session, OTP, magic-link
@@ -92,6 +94,8 @@ app/
 │       ├── camera/route.ts           # POST — live camera frame analysis
 │       ├── route.ts                  # GET  — paginated receipt list
 │       └── stats/route.ts            # GET  — aggregated stats & charts
+│   └── leaderboard/
+│       └── route.ts                  # GET/POST — leaderboard rankings
 components/
 ├── carbon/                           # Domain components
 │   ├── api-key-dialog.tsx            # BYOK dialog + useGeminiKey hook
@@ -100,6 +104,10 @@ components/
 │   ├── scan-result.tsx               # Analysis result display
 │   ├── carbon-chart.tsx              # Trend & category charts (Recharts)
 │   ├── impact-badge.tsx              # 🟢🟡🔴 badge component
+│   ├── leaderboard-badges.tsx        # Tier badge & eco-score ring
+│   ├── leaderboard-table.tsx         # Ranked player table
+│   ├── leaderboard-preview.tsx       # Landing page preview
+│   ├── submit-score-dialog.tsx       # Join/edit leaderboard dialog
 │   └── app-nav.tsx                   # In-app navigation
 ├── providers/                        # AuthProvider, AuthGuard
 └── ui/                               # shadcn/ui primitives
@@ -107,8 +115,11 @@ lib/
 ├── gemini.ts                         # Gemini AI integration (prompts, parsing, error handling)
 ├── session.ts                        # JWT encrypt/decrypt (jose)
 ├── mongodb.ts                        # Mongoose connection singleton
-└── models/
+├── eco-score.ts                      # Eco-score computation & tier classification
+├── leaderboard.ts                    # Auto-refresh leaderboard entry helper
+├── models/
     ├── Receipt.ts                    # Receipt + ReceiptItem schemas
+    ├── LeaderboardEntry.ts           # Leaderboard entry schema
     └── User.ts                       # User schema
 ```
 
@@ -121,6 +132,8 @@ lib/
 | `GET` | `/api/v1/receipts` | ✅ | List receipts. Query: `?page=1&limit=10` (max 50). |
 | `GET` | `/api/v1/receipts/stats` | ✅ | Aggregated stats: totals, monthly trend (6mo), categories, impact distribution. |
 | `GET` | `/api/v1/system/climate` | — | Global climate context: live CO₂ plus editorial planetary signals for dashboard and AI insights. |
+| `GET` | `/api/v1/leaderboard` | — | Public leaderboard. Query: `?limit=50&offset=0`. Returns user's rank if auth'd. |
+| `POST` | `/api/v1/leaderboard` | — | Update nickname (auth'd) or submit community score (unauth'd). Auth'd entries auto-created on scan. |
 | `POST` | `/api/v1/auth/register` | — | Create account (email/password). |
 | `POST` | `/api/v1/auth/login` | — | Login, returns `auth-token` cookie. |
 | `POST` | `/api/v1/auth/logout` | — | Clear session cookie. |
@@ -218,6 +231,21 @@ Users can provide their own Gemini API key via a settings dialog. The key is:
   updatedAt: Date
 }
 
+// LeaderboardEntry (MongoDB)
+{
+  userId?: ObjectId,          // linked for auth'd users
+  nickname: string,           // display name (max 24 chars)
+  ecoScore: number,           // 0-100 composite score
+  totalScans: number,
+  totalItems: number,
+  lowImpactRatio: number,     // % of low-impact items
+  avgCarbonPerItem: number,
+  streakWeeks: number,        // consecutive weeks with scans
+  tier: "seedling" | "sprout" | "grove" | "guardian",
+  isVerified: boolean,        // true for auth'd users
+  country?: string
+}
+
 // User (MongoDB)
 {
   email: string,
@@ -230,6 +258,21 @@ Users can provide their own Gemini API key via a settings dialog. The key is:
   }
 }
 ```
+
+### Eco Score & Leaderboard
+
+The leaderboard uses a composite **Eco Score** (0–100) with four weighted components:
+
+| Component | Weight | Measures |
+|---|---|---|
+| Low-Impact Ratio | 30% | % of items classified as "low" impact |
+| Swap Awareness | 25% | Fraction of items with meaningful swap savings (≥ 0.5 kg) |
+| Carbon Efficiency | 25% | Inverse of avg carbon per item (lower = better, capped at 5 kg) |
+| Scan Streak | 20% | Consecutive weeks with ≥ 1 scan (capped at 12 weeks) |
+
+**Tiers:** 🌱 Seedling (0–25) · 🌿 Sprout (26–50) · 🌳 Grove (51–75) · 🌍 Guardian (76–100)
+
+**Auto-join:** Authenticated users automatically get a leaderboard entry on their first scan. The entry updates after every scan and sync. Unauthenticated users can submit community scores with plausibility validation.
 
 ### Auth Flow
 

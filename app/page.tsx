@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { LeaderboardPreview } from "@/components/carbon/leaderboard-preview";
 
 const features = [
   {
@@ -257,6 +258,26 @@ export default function Home() {
               swap={null}
             />
           </div>
+        </div>
+      </section>
+
+      {/* Leaderboard */}
+      <section className="w-full px-4 py-14">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="mb-8 max-w-6xl">
+            <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
+              Leaderboard
+            </p>
+            <h2 className="text-3xl tracking-tight md:text-4xl">
+              See who&apos;s leading the charge.
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Every scan earns you an Eco Score. Climb the ranks from 🌱
+              Seedling to 🌍 Guardian.
+            </p>
+          </div>
+
+          <LeaderboardPreview />
         </div>
       </section>
 
