@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     if (!email) {
       return NextResponse.json(
         { success: false, message: "Email is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     if (!user && !shouldCreate) {
       return NextResponse.json(
         { success: false, message: "No account found with this email" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -48,21 +48,21 @@ export async function POST(req: Request) {
     const emailService = new EmailService();
 
     const htmlBody = emailService.generateStandardTemplate({
-      title: "Sign in to Bucket",
-      content: `<p>Hello,</p><p>We received a request to sign in to your Bucket account.</p><p>Click the button below to securely authenticate your session.</p>`,
+      title: "Sign in to Carbon Lens",
+      content: `<p>Hello,</p><p>We received a request to sign in to your Carbon Lens account.</p><p>Click the button below to securely authenticate your session.</p>`,
       buttonText: "Sign in securely",
       buttonUrl: magicLinkUrl,
     });
 
     const emailResponse = await emailService.sendEmail({
       to: { email: normalizedEmail },
-      subject: "Sign in to Bucket",
+      subject: "Sign in to Carbon Lens",
       htmlBody,
     });
 
     if (!emailResponse.success) {
       throw new Error(
-        "Failed to dispatch Magic Link email: " + emailResponse.error,
+        "Failed to dispatch Magic Link email: " + emailResponse.error
       );
     }
 
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     console.error("Magic Link Request error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

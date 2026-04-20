@@ -2,7 +2,7 @@
 
 **See the carbon cost of everything you buy.** AI-powered carbon footprint tracking using Google Gemini — scan receipts, photograph products, or point your live camera at items to instantly estimate CO₂e emissions and discover lower-carbon alternatives.
 
-**[Live Demo](https://carbon-lens-pi.vercel.app/)** · **[DEV Challenge Submission](https://dev.to/challenges/weekend-2026-04-16)**
+**[Live Demo](https://carbon-lens-pi.vercel.app/)** · **[DEV Challenge Submission](https://dev.to/miracleio/how-to-build-a-carbon-footprint-tracker-32a4)**
 
 ---
 

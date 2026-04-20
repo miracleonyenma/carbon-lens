@@ -19,7 +19,7 @@ import { HomeIcon, PaintBucketIcon } from "lucide-react";
 export const data = {
   teams: [
     {
-      name: "Bucket",
+      name: "Lens",
       logo: <PaintBucketIcon strokeWidth={2} />,
       plan: "Production",
     },
