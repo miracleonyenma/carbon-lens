@@ -261,7 +261,7 @@ export function PageHeader({
         <div className="bg-background pointer-events-none absolute inset-0 -z-20 mask-[linear-gradient(to_bottom,rgba(0,0,0,0.35)_0%,transparent_100%)]" />
         <BlurredBackground className="h-[150%]" />
 
-        <div className="wrapper mx-auto flex min-h-16 max-w-4xl shrink-0 items-center gap-2 lg:py-6">
+        <div className="wrapper mx-auto flex min-h-16 max-w-5xl shrink-0 items-center gap-2 lg:py-6">
           {/* Logo / Team Switcher */}
           <AnimatePresence mode="sync">
             {options?.showTeamSwitcher ? (

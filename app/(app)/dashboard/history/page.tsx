@@ -63,7 +63,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="w-full mx-auto max-w-5xl px-4 py-8">
+    <div className="w-full mx-auto max-w-6xl px-4 py-8">
       <div className="mb-8">
         <Link
           href="/dashboard"

@@ -22,7 +22,7 @@ export default function ClimateStatsPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-48 rounded bg-muted" />
           <div className="grid gap-4 xl:grid-cols-3">
@@ -41,7 +41,7 @@ export default function ClimateStatsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <Link
         href="/dashboard"
         className="mb-6 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

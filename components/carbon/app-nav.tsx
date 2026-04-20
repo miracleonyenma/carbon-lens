@@ -17,7 +17,7 @@ export function AppNav() {
 
   return (
     <nav className="border-b px-4">
-      <div className="mx-auto flex max-w-5xl items-center gap-1">
+      <div className="mx-auto flex max-w-6xl items-center gap-1">
         <Link
           href="/dashboard"
           className="mr-4 flex items-center gap-2 py-3 font-bold"

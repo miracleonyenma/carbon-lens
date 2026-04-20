@@ -147,7 +147,7 @@ export default function Home() {
     <main>
       {/* Sticky nav */}
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 text-lg font-bold">
             <Leaf className="h-6 w-6 text-primary" />
             Carbon Lens
@@ -165,7 +165,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="w-full p-4 pt-20 pb-12">
-        <div className="mx-auto w-full max-w-5xl">
+        <div className="mx-auto w-full max-w-6xl">
           <p className="text-muted-foreground text-xs tracking-[0.2em] uppercase">
             AI-powered carbon footprint tracking
           </p>
@@ -193,8 +193,8 @@ export default function Home() {
 
       {/* Features */}
       <section className="w-full px-4 py-14">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="mb-10 max-w-5xl">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mb-10 max-w-6xl">
             <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
               Features
             </p>
@@ -217,8 +217,8 @@ export default function Home() {
 
       {/* Demo */}
       <section className="w-full px-4 py-14">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="mb-8 max-w-5xl">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mb-8 max-w-6xl">
             <p className="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
               Live preview
             </p>
@@ -262,7 +262,7 @@ export default function Home() {
 
       {/* CTA */}
       <section className="w-full px-4 py-14">
-        <div className="bg-primary/5 border-primary/20 mx-auto w-full max-w-5xl rounded-2xl border p-12 text-center">
+        <div className="bg-primary/5 border-primary/20 mx-auto w-full max-w-6xl rounded-2xl border p-12 text-center">
           <Leaf className="mx-auto mb-6 h-12 w-12 text-primary" />
           <h2 className="text-3xl font-semibold tracking-tight">
             Ready to see your carbon footprint?
