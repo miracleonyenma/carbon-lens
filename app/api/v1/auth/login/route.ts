@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     if (!email || !password) {
       return NextResponse.json(
         { success: false, message: "Email and password are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       // Don't leak whether user exists or if they only have a PayID
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     if (!isMatch) {
       return NextResponse.json(
         { success: false, message: "Invalid email or password" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     console.error("Login error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

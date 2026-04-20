@@ -47,7 +47,8 @@ export function ClimateContext({
 }) {
   const preindustrialBaseline = 280;
   const co2AboveBaseline = climate.co2.latestPpm - preindustrialBaseline;
-  const co2PercentAboveBaseline = (co2AboveBaseline / preindustrialBaseline) * 100;
+  const co2PercentAboveBaseline =
+    (co2AboveBaseline / preindustrialBaseline) * 100;
   const co2Progress = clampPercent((climate.co2.latestPpm / 450) * 100);
 
   return (
@@ -96,7 +97,9 @@ export function ClimateContext({
               value: `+${co2PercentAboveBaseline.toFixed(1)}%`,
             },
             {
-              label: `${new Date(climate.co2.latestDate).getFullYear()} average`,
+              label: `${new Date(
+                climate.co2.latestDate
+              ).getFullYear()} average`,
               value: `${climate.co2.ytdAveragePpm.toFixed(2)} ppm`,
             },
             {
@@ -110,7 +113,9 @@ export function ClimateContext({
           ]}
           footerLabel={
             <>
-              Latest reading on {new Date(climate.co2.latestDate).toLocaleDateString()} · {climate.co2.source}
+              Latest reading on{" "}
+              {new Date(climate.co2.latestDate).toLocaleDateString()} ·{" "}
+              {climate.co2.source}
               {climate.co2.isFallback ? " (fallback)" : ""}
             </>
           }
@@ -118,7 +123,8 @@ export function ClimateContext({
           <div className="w-full space-y-2">
             <SplitProgressBar value={co2Progress} barHeight={18} />
             <span className="text-muted-foreground text-xs">
-              {co2AboveBaseline.toFixed(2)} ppm above the 280 ppm preindustrial baseline.
+              {co2AboveBaseline.toFixed(2)} ppm above the 280 ppm preindustrial
+              baseline.
             </span>
           </div>
         </StatCard>
@@ -147,7 +153,10 @@ export function ClimateContext({
                 </>
               }
               stats={[
-                { label: derived.comparisonLabel, value: derived.comparisonValue },
+                {
+                  label: derived.comparisonLabel,
+                  value: derived.comparisonValue,
+                },
                 { label: "Source", value: signal.source },
               ]}
               footerLabel={signal.description}
@@ -177,9 +186,13 @@ function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
       const overParisGoal = current - 1.5;
       return {
         comparisonLabel: "Above Paris goal",
-        comparisonValue: `${overParisGoal >= 0 ? "+" : ""}${overParisGoal.toFixed(2)} deg C`,
+        comparisonValue: `${
+          overParisGoal >= 0 ? "+" : ""
+        }${overParisGoal.toFixed(2)} deg C`,
         progressValue: clampPercent((current / 2) * 100),
-        progressCaption: `${current.toFixed(2)} deg C as a share of a 2.0 deg C warming line.`,
+        progressCaption: `${current.toFixed(
+          2
+        )} deg C as a share of a 2.0 deg C warming line.`,
       };
     }
     case "renewables": {
@@ -188,7 +201,9 @@ function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
         comparisonLabel: "Per 10-point move",
         comparisonValue: `${(growth / 10).toFixed(1)}x`,
         progressValue: clampPercent(growth),
-        progressCaption: `${growth.toFixed(0)}% year-over-year renewable growth.`,
+        progressCaption: `${growth.toFixed(
+          0
+        )}% year-over-year renewable growth.`,
       };
     }
     case "ice": {
@@ -197,16 +212,21 @@ function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
       return {
         comparisonLabel: "Average per second",
         comparisonValue: `${formatCompact(tonnesPerSecond)} tonnes`,
-        progressValue: clampPercent((Number.parseFloat(signal.value) / 1.5) * 100),
+        progressValue: clampPercent(
+          (Number.parseFloat(signal.value) / 1.5) * 100
+        ),
         progressCaption: `${signal.value} trillion tonnes relative to a 1.5 trillion-tonne reference.`,
       };
     }
     case "forest": {
-      const hectaresPerHour = (Number.parseFloat(signal.value) * 1_000_000) / (365 * 24);
+      const hectaresPerHour =
+        (Number.parseFloat(signal.value) * 1_000_000) / (365 * 24);
       return {
         comparisonLabel: "Average per hour",
         comparisonValue: `${formatCompact(hectaresPerHour)} hectares`,
-        progressValue: clampPercent((Number.parseFloat(signal.value) / 20) * 100),
+        progressValue: clampPercent(
+          (Number.parseFloat(signal.value) / 20) * 100
+        ),
         progressCaption: `${signal.value} million hectares relative to a 20 million-hectare marker.`,
       };
     }
@@ -217,7 +237,9 @@ function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
         comparisonLabel: "Of assessed species",
         comparisonValue: `${((threatened / assessed) * 100).toFixed(1)}%`,
         progressValue: clampPercent((threatened / assessed) * 100),
-        progressCaption: `${signal.value} threatened out of roughly ${assessed.toLocaleString()} assessed species.`,
+        progressCaption: `${
+          signal.value
+        } threatened out of roughly ${assessed.toLocaleString()} assessed species.`,
       };
     }
     case "plastic": {
@@ -225,7 +247,9 @@ function deriveSignalMetrics(signal: ClimateContextData["signals"][number]) {
       return {
         comparisonLabel: "Average per day",
         comparisonValue: `${formatCompact(tonnesPerDay)} tonnes`,
-        progressValue: clampPercent((Number.parseFloat(signal.value) / 500) * 100),
+        progressValue: clampPercent(
+          (Number.parseFloat(signal.value) / 500) * 100
+        ),
         progressCaption: `${signal.value} million tonnes relative to a 500 million-tonne marker.`,
       };
     }

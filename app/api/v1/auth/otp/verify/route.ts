@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     if (!email || !otp) {
       return NextResponse.json(
         { success: false, message: "Email and OTP are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
           success: false,
           message: "OTP has expired or is invalid. Please request a new one.",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     if (!isMatch) {
       return NextResponse.json(
         { success: false, message: "Invalid OTP code" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
     console.error("OTP Verify error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

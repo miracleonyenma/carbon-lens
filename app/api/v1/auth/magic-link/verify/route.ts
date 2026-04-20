@@ -17,7 +17,7 @@ export async function GET(req: Request) {
 
     if (!email || !token) {
       return NextResponse.redirect(
-        new URL("/auth/error?message=Missing+magic+link+parameters", req.url),
+        new URL("/auth/error?message=Missing+magic+link+parameters", req.url)
       );
     }
 
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 
     if (!tokenRecord) {
       return NextResponse.redirect(
-        new URL("/auth/error?message=Magic+link+expired+or+invalid", req.url),
+        new URL("/auth/error?message=Magic+link+expired+or+invalid", req.url)
       );
     }
 
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
 
     if (!isMatch) {
       return NextResponse.redirect(
-        new URL("/auth/error?message=Invalid+magic+link", req.url),
+        new URL("/auth/error?message=Invalid+magic+link", req.url)
       );
     }
 
@@ -89,7 +89,7 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error("Magic Link Verify error:", error);
     return NextResponse.redirect(
-      new URL("/auth/error?message=Internal+server+error", req.url),
+      new URL("/auth/error?message=Internal+server+error", req.url)
     );
   }
 }
