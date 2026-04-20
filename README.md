@@ -16,6 +16,7 @@
 | **Smart Swaps** | Every medium/high-impact item includes a lower-carbon alternative with exact kg CO₂ savings. |
 | **Impact Badges** | 🟢 Low (<2 kg) · 🟡 Medium (2-5 kg) · 🔴 High (>5 kg) per item. |
 | **Dashboard** | Stat cards, monthly trend chart, category breakdown pie chart, recent scans. |
+| **Climate Context** | Live atmospheric CO₂ plus global climate signals like warming, renewables growth, forest loss, ice loss, species threat, and plastic production. Shows the regional context Gemini is using when available. |
 | **Scan History** | Paginated history with expandable item details, swap suggestions, and AI insights. |
 | **BYOK** | Bring Your Own Gemini API Key — stored in localStorage, sent directly to Google via `x-gemini-key` header. |
 | **Dark Mode** | Full light/dark theme support via `next-themes`. |
@@ -73,7 +74,7 @@ npm run start      # Start production server
 
 ### Project Structure
 
-```
+```text
 app/
 ├── page.tsx                          # Landing page
 ├── layout.tsx                        # Root layout (providers, fonts, theme)
@@ -119,6 +120,7 @@ lib/
 | `POST` | `/api/v1/receipts/camera` | ✅ | Analyze camera frame (base64). Returns result only (no DB save). |
 | `GET` | `/api/v1/receipts` | ✅ | List receipts. Query: `?page=1&limit=10` (max 50). |
 | `GET` | `/api/v1/receipts/stats` | ✅ | Aggregated stats: totals, monthly trend (6mo), categories, impact distribution. |
+| `GET` | `/api/v1/system/climate` | — | Global climate context: live CO₂ plus editorial planetary signals for dashboard and AI insights. |
 | `POST` | `/api/v1/auth/register` | — | Create account (email/password). |
 | `POST` | `/api/v1/auth/login` | — | Login, returns `auth-token` cookie. |
 | `POST` | `/api/v1/auth/logout` | — | Clear session cookie. |
@@ -130,15 +132,25 @@ lib/
 
 Three specialized prompts share a common response schema and carbon guidelines:
 
-```
+```text
 IMAGE_ANALYSIS_PROMPT   → Receipt photos, product images, meal photos
 TEXT_ANALYSIS_PROMPT    → Typed/pasted item lists
 LIVE_CAMERA_PROMPT      → Real-time camera frames (optimized for speed)
 ```
 
+The scan and camera prompts are also augmented with shared climate context so Gemini can write more grounded, timely user insights without changing item-level carbon estimates.
+
+Gemini also receives coarse regional context when available:
+
+- request-level country and currency via Vercel headers or `ipinfo.io`
+- persisted profile geo for signed-in users
+- automatic geo backfill for older accounts during login, OTP verify, magic-link verify, or session refresh
+
+This regional context is used to localize insight wording and swap framing. It is not used to invent exact regional lifecycle factors, prices, or policy claims.
+
 **Carbon Guidelines** — 30+ reference values embedded in every prompt:
 
-```
+```text
 Beef: ~27 kg CO₂e/kg    Chicken: ~6.9 kg CO₂e/kg    Tofu: ~2 kg CO₂e/kg
 Jeans: ~33 kg CO₂e      Laptop: ~300-400 kg CO₂e     Gasoline: ~2.3 kg CO₂e/L
 ```
@@ -205,6 +217,18 @@ Users can provide their own Gemini API key via a settings dialog. The key is:
   createdAt: Date,
   updatedAt: Date
 }
+
+// User (MongoDB)
+{
+  email: string,
+  ...
+  geo?: {
+    country?: string,
+    currency?: string,
+    source?: string,
+    detectedAt?: Date
+  }
+}
 ```
 
 ### Auth Flow
@@ -212,11 +236,13 @@ Users can provide their own Gemini API key via a settings dialog. The key is:
 1. User registers/logs in via `/api/v1/auth/register` or `/api/v1/auth/login`
 2. Server creates a JWT (HS256, 7-day expiry) using `jose` and sets it as an `auth-token` httpOnly cookie
 3. `AuthProvider` checks session on mount via `/api/v1/auth/session`
-4. `AuthGuard` wraps protected routes — redirects to `/login?returnUrl=...` if unauthenticated
+4. Missing user geo is backfilled opportunistically from the incoming request during auth/session flows
+5. Dashboard climate cards can display the current regional context source used for AI grounding
+6. `AuthGuard` wraps protected routes — redirects to `/login?returnUrl=...` if unauthenticated
 
 ### Live Camera Pipeline
 
-```
+```text
 getUserMedia (1280x720) → canvas scale (max 640px) → JPEG 0.6 quality
   → base64 data URL → POST /api/v1/receipts/camera
   → strip data URL prefix → analyzeCameraFrame(base64, mimeType, apiKey?)
@@ -232,6 +258,7 @@ getUserMedia (1280x720) → canvas scale (max 640px) → JPEG 0.6 quality
 | `MONGO_URI` | Yes | MongoDB connection string |
 | `ENCRYPTION_KEY` | Yes | 32-char string for JWT signing (HS256) |
 | `GEMINI_API_KEY` | Yes | Google Gemini API key (fallback when no BYOK) |
+| `IPINFO_TOKEN` | No | Optional token for `ipinfo.io` request geolocation fallback used for regional AI context and geo backfill. |
 | `MAIL_USER` | No | SMTP from address |
 | `MAIL_PASS` | No | SMTP password |
 | `RESEND_API_KEY` | No | Resend email API key |

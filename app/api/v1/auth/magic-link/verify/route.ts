@@ -5,6 +5,7 @@ import { VerificationToken } from "@/lib/models/VerificationToken";
 import bcrypt from "bcryptjs";
 import { encryptSession } from "@/lib/session";
 import { applyReferralCookie } from "@/lib/referrals";
+import { backfillUserGeoIfMissing } from "@/lib/user-geo";
 import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
@@ -62,6 +63,8 @@ export async function GET(req: Request) {
       user.emailVerified = true;
       await user.save();
     }
+
+    await backfillUserGeoIfMissing(user);
 
     // Generate JWT session
     const sessionToken = await encryptSession({

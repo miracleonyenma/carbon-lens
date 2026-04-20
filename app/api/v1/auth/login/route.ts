@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import { encryptSession } from "@/lib/session";
+import { backfillUserGeoIfMissing } from "@/lib/user-geo";
 import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
@@ -36,6 +37,8 @@ export async function POST(req: Request) {
         { status: 401 },
       );
     }
+
+    await backfillUserGeoIfMissing(user);
 
     const token = await encryptSession({
       userId: user._id.toString(),

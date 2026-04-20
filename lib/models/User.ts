@@ -7,6 +7,12 @@ export interface IUser extends Document {
   lastName?: string;
   phone?: string;
   picture?: string;
+  geo?: {
+    country?: string;
+    currency?: string;
+    source?: string;
+    detectedAt?: Date;
+  };
   emailVerified?: boolean;
   phoneVerified?: boolean;
   payTag?: string;
@@ -57,6 +63,23 @@ const UserSchema = new Schema<IUser>(
     picture: {
       type: String,
     },
+    geo: {
+      country: {
+        type: String,
+        uppercase: true,
+        trim: true,
+      },
+      currency: {
+        type: String,
+        uppercase: true,
+        trim: true,
+      },
+      source: {
+        type: String,
+        trim: true,
+      },
+      detectedAt: Date,
+    },
     payTag: {
       type: String,
       unique: true,
@@ -99,7 +122,7 @@ const UserSchema = new Schema<IUser>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const User =

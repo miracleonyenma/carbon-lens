@@ -148,16 +148,28 @@ ${CARBON_GUIDELINES}
 
 Be conservative. Identify what you can clearly see. Always provide swap suggestions for medium and high impact items.`;
 
+function withClimateContext(prompt: string, climateContext?: string) {
+  if (!climateContext) return prompt;
+
+  return `${prompt}
+
+Global climate context for user-facing insights:
+${climateContext}
+
+Use the climate context only to make the insight more grounded and timely. Do not override the item-level carbon guidelines above unless the user input itself clearly demands it.`;
+}
+
 export async function analyzeImage(
   base64Image: string,
   mimeType: string,
-  apiKey?: string
+  apiKey?: string,
+  climateContext?: string
 ) {
   try {
     const model = getModel(apiKey);
 
     const result = await model.generateContent([
-      IMAGE_ANALYSIS_PROMPT,
+      withClimateContext(IMAGE_ANALYSIS_PROMPT, climateContext),
       {
         inlineData: {
           data: base64Image,
@@ -173,12 +185,16 @@ export async function analyzeImage(
   }
 }
 
-export async function analyzeText(itemsText: string, apiKey?: string) {
+export async function analyzeText(
+  itemsText: string,
+  apiKey?: string,
+  climateContext?: string
+) {
   try {
     const model = getModel(apiKey);
 
     const result = await model.generateContent([
-      TEXT_ANALYSIS_PROMPT,
+      withClimateContext(TEXT_ANALYSIS_PROMPT, climateContext),
       `Here are the items:\n${itemsText}`,
     ]);
 
@@ -192,13 +208,14 @@ export async function analyzeText(itemsText: string, apiKey?: string) {
 export async function analyzeCameraFrame(
   base64Image: string,
   mimeType: string,
-  apiKey?: string
+  apiKey?: string,
+  climateContext?: string
 ) {
   try {
     const model = getModel(apiKey);
 
     const result = await model.generateContent([
-      LIVE_CAMERA_PROMPT,
+      withClimateContext(LIVE_CAMERA_PROMPT, climateContext),
       {
         inlineData: {
           data: base64Image,

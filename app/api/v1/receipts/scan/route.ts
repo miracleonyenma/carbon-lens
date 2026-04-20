@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
 import { analyzeImage, analyzeText, GeminiError } from "@/lib/gemini";
+import { buildAnalysisContext, getClimateContext } from "@/lib/climate";
 import { connectDB } from "@/lib/mongodb";
 import Receipt from "@/lib/models/Receipt";
+import { User } from "@/lib/models/User";
+import { detectGeoFromRequest } from "@/utils/geoip";
 
 let scanRequestCount = 0;
 
@@ -27,6 +30,23 @@ export async function POST(request: NextRequest) {
 
     const contentType = request.headers.get("content-type") || "";
     const userApiKey = request.headers.get("x-gemini-key") || undefined;
+    await connectDB();
+
+    const [climate, user, geo] = await Promise.all([
+      getClimateContext(),
+      User.findById(session.userId).select("geo").lean(),
+      detectGeoFromRequest(),
+    ]);
+
+    const preferredGeo = user?.geo?.country
+      ? {
+          country: user.geo.country,
+          currency: user.geo.currency ?? null,
+          source: user.geo.source ?? "user_profile",
+        }
+      : geo;
+
+    const promptContext = buildAnalysisContext(climate, preferredGeo);
 
     let analysisResult;
 
@@ -69,7 +89,12 @@ export async function POST(request: NextRequest) {
       const bytes = await file.arrayBuffer();
       const base64 = Buffer.from(bytes).toString("base64");
 
-      analysisResult = await analyzeImage(base64, file.type, userApiKey);
+      analysisResult = await analyzeImage(
+        base64,
+        file.type,
+        userApiKey,
+        promptContext
+      );
     } else {
       const body = await request.json();
       const { items } = body;
@@ -89,11 +114,8 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      analysisResult = await analyzeText(items, userApiKey);
+      analysisResult = await analyzeText(items, userApiKey, promptContext);
     }
-
-    await connectDB();
-
     const receipt = await Receipt.create({
       userId: session.userId,
       ...analysisResult,

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
+import { buildAnalysisContext, getClimateContext } from "@/lib/climate";
+import { connectDB } from "@/lib/mongodb";
+import { User } from "@/lib/models/User";
 import { analyzeCameraFrame, GeminiError } from "@/lib/gemini";
+import { detectGeoFromRequest } from "@/utils/geoip";
 
 // Allow larger body for base64 camera frames
 export const maxDuration = 30;
@@ -30,6 +34,23 @@ export async function POST(request: NextRequest) {
 
     // BYOK: check for user-provided API key
     const userApiKey = request.headers.get("x-gemini-key") || undefined;
+    await connectDB();
+
+    const [climate, user, geo] = await Promise.all([
+      getClimateContext(),
+      User.findById(session.userId).select("geo").lean(),
+      detectGeoFromRequest(),
+    ]);
+
+    const preferredGeo = user?.geo?.country
+      ? {
+          country: user.geo.country,
+          currency: user.geo.currency ?? null,
+          source: user.geo.source ?? "user_profile",
+        }
+      : geo;
+
+    const promptContext = buildAnalysisContext(climate, preferredGeo);
 
     let body;
     try {
@@ -63,7 +84,8 @@ export async function POST(request: NextRequest) {
     const analysisResult = await analyzeCameraFrame(
       base64Data,
       mimeType,
-      userApiKey
+      userApiKey,
+      promptContext
     );
 
     return NextResponse.json({

@@ -13,6 +13,9 @@ interface User {
   picture?: string;
   payTag?: string;
   referredBy?: string;
+  geoCountry?: string;
+  geoCurrency?: string;
+  geoSource?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
   kycVerified?: boolean;

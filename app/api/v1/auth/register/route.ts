@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/lib/models/User";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { detectGeoFromRequest } from "@/utils/geoip";
 
 export async function POST(req: Request) {
   try {
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
     if (!email || !password) {
       return NextResponse.json(
         { success: false, message: "Email and password are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
     if (existingUser) {
       return NextResponse.json(
         { success: false, message: "User with this email already exists" },
-        { status: 409 },
+        { status: 409 }
       );
     }
 
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const geo = await detectGeoFromRequest();
 
     await User.create({
       email: email.toLowerCase(),
@@ -51,6 +53,14 @@ export async function POST(req: Request) {
       firstName,
       lastName,
       phone,
+      ...(geo.country && {
+        geo: {
+          country: geo.country,
+          currency: geo.currency,
+          source: geo.source,
+          detectedAt: new Date(),
+        },
+      }),
       ...(referredById && { referredBy: referredById }),
     });
 
@@ -62,7 +72,7 @@ export async function POST(req: Request) {
     console.error("Registration error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

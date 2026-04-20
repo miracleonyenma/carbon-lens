@@ -16,7 +16,10 @@ import {
   CarbonTrendChart,
   CategoryBreakdownChart,
 } from "@/components/carbon/carbon-chart";
+import { ClimateContext } from "@/components/carbon/climate-context";
 import { ImpactBadge } from "@/components/carbon/impact-badge";
+import { useAuth } from "@/components/providers/auth-provider";
+import type { ClimateContext as ClimateContextData } from "@/lib/climate";
 
 interface Stats {
   overview: {
@@ -44,18 +47,22 @@ interface RecentReceipt {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
+  const [climate, setClimate] = useState<ClimateContextData | null>(null);
   const [recentReceipts, setRecentReceipts] = useState<RecentReceipt[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statsRes, receiptsRes] = await Promise.all([
+        const [statsRes, climateRes, receiptsRes] = await Promise.all([
           fetch("/api/v1/receipts/stats"),
+          fetch("/api/v1/system/climate"),
           fetch("/api/v1/receipts?limit=5"),
         ]);
         if (statsRes.ok) setStats(await statsRes.json());
+        if (climateRes.ok) setClimate(await climateRes.json());
         if (receiptsRes.ok) {
           const data = await receiptsRes.json();
           setRecentReceipts(data.receipts);
@@ -106,29 +113,52 @@ export default function DashboardPage() {
       </div>
 
       {!hasData ? (
-        /* Empty state */
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed py-20 text-center"
-        >
-          <div className="mb-6 rounded-full bg-primary/10 p-6">
-            <Leaf className="h-12 w-12 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold">Start tracking your impact</h2>
-          <p className="mx-auto mt-2 max-w-md text-muted-foreground">
-            Upload your first grocery receipt and let AI analyze the carbon
-            footprint of your purchases.
-          </p>
-          <Link href="/dashboard/scan" className="mt-6">
-            <Button size="lg" className="gap-2">
-              <ScanLine className="h-5 w-5" />
-              Scan Your First Receipt
-            </Button>
-          </Link>
-        </motion.div>
+        <div className="space-y-6">
+          {climate && (
+            <ClimateContext
+              climate={climate}
+              regionContext={{
+                country: user?.geoCountry,
+                currency: user?.geoCurrency,
+                source: user?.geoSource,
+              }}
+            />
+          )}
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed py-20 text-center"
+          >
+            <div className="mb-6 rounded-full bg-primary/10 p-6">
+              <Leaf className="h-12 w-12 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Start tracking your impact</h2>
+            <p className="mx-auto mt-2 max-w-md text-muted-foreground">
+              Upload your first grocery receipt and let AI analyze the carbon
+              footprint of your purchases.
+            </p>
+            <Link href="/dashboard/scan" className="mt-6">
+              <Button size="lg" className="gap-2">
+                <ScanLine className="h-5 w-5" />
+                Scan Your First Receipt
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
       ) : (
         <div className="space-y-6">
+          {climate && (
+            <ClimateContext
+              climate={climate}
+              regionContext={{
+                country: user?.geoCountry,
+                currency: user?.geoCurrency,
+                source: user?.geoSource,
+              }}
+            />
+          )}
+
           {/* Stats cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard

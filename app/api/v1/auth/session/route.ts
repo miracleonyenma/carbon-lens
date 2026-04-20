@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { decryptSession } from "@/lib/session";
 import { User } from "@/lib/models/User";
 import { connectDB } from "@/lib/mongodb";
+import { backfillUserGeoIfMissing } from "@/lib/user-geo";
 
 export async function GET() {
   try {
@@ -12,7 +13,7 @@ export async function GET() {
     if (!token) {
       return NextResponse.json(
         { success: false, message: "Unauthenticated" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -20,14 +21,14 @@ export async function GET() {
     if (!session?.userId) {
       return NextResponse.json(
         { success: false, message: "Invalid session" },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
     await connectDB();
     const user = await User.findById(session.userId)
       .select(
-        "-kycData.payidKyc.accessToken -kycData.payidKyc.refreshToken -kycData.payidKyc.idToken",
+        "-kycData.payidKyc.accessToken -kycData.payidKyc.refreshToken -kycData.payidKyc.idToken"
       )
       .populate("referredBy", "payTag")
       .lean();
@@ -35,9 +36,14 @@ export async function GET() {
     if (!user) {
       return NextResponse.json(
         { success: false, message: "User not found" },
-        { status: 404 },
+        { status: 404 }
       );
     }
+
+    const detectedGeo = await backfillUserGeoIfMissing(user);
+    const effectiveGeoCountry = user.geo?.country ?? detectedGeo?.country;
+    const effectiveGeoCurrency = user.geo?.currency ?? detectedGeo?.currency;
+    const effectiveGeoSource = user.geo?.source ?? detectedGeo?.source;
 
     return NextResponse.json({
       success: true,
@@ -49,6 +55,9 @@ export async function GET() {
         picture: user.picture,
         payTag: user.payTag,
         referredBy: user.referredBy?.payTag || undefined,
+        geoCountry: effectiveGeoCountry,
+        geoCurrency: effectiveGeoCurrency,
+        geoSource: effectiveGeoSource,
         emailVerified: user.emailVerified,
         phoneVerified: user.phoneVerified,
         kycVerified: user.kycData?.payidKyc?.kycVerified,
@@ -58,7 +67,7 @@ export async function GET() {
     console.error("Fetch session error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
