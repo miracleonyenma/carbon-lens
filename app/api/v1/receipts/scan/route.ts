@@ -147,7 +147,8 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Receipt scan error:", error);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error(`[SCAN #${reqId}] Error:`, errMsg, error);
     if (error instanceof GeminiError) {
       return NextResponse.json(
         {

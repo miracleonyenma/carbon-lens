@@ -30,6 +30,7 @@ function handleGeminiError(error: unknown): never {
   if (error instanceof GeminiError) throw error;
 
   const msg = error instanceof Error ? error.message : String(error);
+  console.error("[Gemini] Unhandled error:", msg);
 
   // Rate limit / quota exceeded
   if (msg.includes("429") || msg.includes("quota")) {
@@ -63,7 +64,18 @@ function handleGeminiError(error: unknown): never {
     );
   }
 
-  throw new GeminiError("Failed to analyze — please try again.", "UNKNOWN");
+  // JSON parse / response format issues from parseGeminiResponse
+  if (msg.includes("invalid JSON") || msg.includes("missing items array")) {
+    throw new GeminiError(
+      "AI returned an unexpected response. Please try again.",
+      "PARSE_ERROR"
+    );
+  }
+
+  throw new GeminiError(
+    `Failed to analyze — please try again. (${msg})`,
+    "UNKNOWN"
+  );
 }
 
 const CARBON_GUIDELINES = `Carbon estimation guidelines:
@@ -159,6 +171,38 @@ ${climateContext}
 Use the climate context only to make the insight more grounded and timely. Do not override the item-level carbon guidelines above unless the user input itself clearly demands it.`;
 }
 
+function extractText(
+  result: {
+    response: {
+      text: () => string;
+      promptFeedback?: { blockReason?: string };
+      candidates?: { finishReason?: string }[];
+    };
+  },
+  context: string
+): string {
+  const response = result.response;
+
+  // Check prompt-level blocking
+  if (response.promptFeedback?.blockReason) {
+    throw new GeminiError(
+      `Content was blocked (${response.promptFeedback.blockReason}). Please try different ${context}.`,
+      "SAFETY_BLOCKED"
+    );
+  }
+
+  // Check candidate-level safety
+  const finishReason = response.candidates?.[0]?.finishReason;
+  if (finishReason === "SAFETY" || finishReason === "BLOCKED") {
+    throw new GeminiError(
+      `Content was blocked by safety filters. Please try different ${context}.`,
+      "SAFETY_BLOCKED"
+    );
+  }
+
+  return response.text();
+}
+
 export async function analyzeImage(
   base64Image: string,
   mimeType: string,
@@ -178,7 +222,7 @@ export async function analyzeImage(
       },
     ]);
 
-    const text = result.response.text();
+    const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
     handleGeminiError(error);
@@ -198,7 +242,7 @@ export async function analyzeText(
       `Here are the items:\n${itemsText}`,
     ]);
 
-    const text = result.response.text();
+    const text = extractText(result, "items");
     return parseGeminiResponse(text);
   } catch (error) {
     handleGeminiError(error);
@@ -224,7 +268,7 @@ export async function analyzeCameraFrame(
       },
     ]);
 
-    const text = result.response.text();
+    const text = extractText(result, "image");
     return parseGeminiResponse(text);
   } catch (error) {
     handleGeminiError(error);
