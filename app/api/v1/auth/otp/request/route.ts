@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     if (!email) {
       return NextResponse.json(
         { success: false, message: "Email is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     if (!user && !shouldCreate) {
       return NextResponse.json(
         { success: false, message: "No account found with this email" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -38,12 +38,12 @@ export async function POST(req: Request) {
 
     const htmlBody = emailService.generateStandardTemplate({
       title: "Your Verification Code",
-      content: `<p>Hello,</p><p>Please use the following 6-digit code to verify your Bucket account.</p><h2 style="font-size: 32px; letter-spacing: 4px; color: #1a74e4; text-align: center; margin: 30px 0;">${otp}</h2><p>This code will expire in 15 minutes.</p>`,
+      content: `<p>Hello,</p><p>Please use the following 6-digit code to verify your Carbon Lens account.</p><h2 style="font-size: 32px; letter-spacing: 4px; color: #1a74e4; text-align: center; margin: 30px 0;">${otp}</h2><p>This code will expire in 15 minutes.</p>`,
     });
 
     const emailResponse = await emailService.sendEmail({
       to: { email: normalizedEmail },
-      subject: "Your Bucket Verification Code",
+      subject: "Your Carbon Lens Verification Code",
       htmlBody,
     });
 
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     console.error("OTP Request error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

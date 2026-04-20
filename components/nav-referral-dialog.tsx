@@ -57,7 +57,7 @@ export const useNavReferralDialog = () => {
       {
         storageKey: "nav-referral-dialog",
         enablePersistence: false,
-      },
+      }
     );
 
   return {
@@ -66,12 +66,9 @@ export const useNavReferralDialog = () => {
   };
 };
 
-export function NavReferralDialog(
-  {
-    // open,
-    // onOpenChange,
-  }: NavReferralDialogProps,
-) {
+export function NavReferralDialog({}: // open,
+// onOpenChange,
+NavReferralDialogProps) {
   const { user, refreshSession } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchingReferrals, setFetchingReferrals] = useState(false);
@@ -245,7 +242,7 @@ export function NavReferralDialog(
       openPrompt={navReferralState.open}
       onOpenPromptChange={(v) => setNavReferralState({ open: !!v })}
       title="Refer a Friend"
-      description="Invite your friends to Bucket to earn rewards together."
+      description="Invite your friends to Carbon Lens to earn rewards together."
       dialogHeader={(isDesktop) => {
         const Header = isDesktop ? DialogHeader : DrawerHeader;
         const Title = isDesktop ? DialogTitle : DrawerTitle;
@@ -261,7 +258,7 @@ export function NavReferralDialog(
                   </Title>
 
                   <Description className="text-foreground/60">
-                    Invite your friends to Bucket to earn rewards together.
+                    Invite your friends to Carbon Lens to earn rewards together.
                   </Description>
                 </div>
                 <div className="flex gap-1 dark:bg-app-theme-950 border text-app-theme-50 border-app-theme-700 dark:border-app-theme-900/70 bg-app-theme-600 w-fit rounded-xl pl-3 p-1 items-center">
@@ -372,13 +369,21 @@ export function NavReferralDialog(
                 </InputGroupAddon>
                 <InputGroupInput
                   readOnly
-                  value={`${typeof window !== "undefined" ? window.location.host : "bucket.app"}/r/${user.payTag}`}
+                  value={`${
+                    typeof window !== "undefined"
+                      ? window.location.host
+                      : "bucket.app"
+                  }/r/${user.payTag}`}
                 />
                 <InputGroupAddon align="inline-end">
                   <InputGroupButton
                     onClick={() =>
                       copy(
-                        `${typeof window !== "undefined" ? window.location.origin : "https://bucket.app"}/r/${user.payTag}`,
+                        `${
+                          typeof window !== "undefined"
+                            ? window.location.origin
+                            : "https://bucket.app"
+                        }/r/${user.payTag}`
                       )
                     }
                   >
